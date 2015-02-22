@@ -1,86 +1,110 @@
 package com.joey.jseach.api.spotify;
 
+import retrofit.RestAdapter;
+
 import com.joey.jseach.core.Album;
 import com.joey.jseach.core.Artist;
 import com.joey.jseach.core.Song;
-import com.joey.jseach.search.inter.Availibility;
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import com.joey.jseach.search.JSearchCallback;
-import com.joey.jseach.search.SearchItem;
-import com.joey.jseach.search.inter.MusicQuerier;
+import com.joey.jseach.search.AvailabilityWithData;
+import com.joey.jseach.search.Converter;
+import com.joey.jseach.search.JSearchException;
+import com.joey.jseach.search.implementations.JSearchErrorHandler;
+import com.joey.jseach.search.interfaces.Availibility;
+import com.joey.jseach.search.interfaces.MusicQuerier;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.joey.jseach.api.spotify.SpotifyResultAlbum.SpotifyAlbum;
+import static com.joey.jseach.api.spotify.SpotifyResultArtist.SpotifyArtist;
+import static com.joey.jseach.api.spotify.SpotifyResultSong.SpotifySong;
+
+
 public class Spotify implements MusicQuerier {
 
-    private static final String TAG = "Spotify";
+	private static final String TAG = "Spotify";
 
-    private final SpofityAPI spofityAPI;
+	private static final Converter<SpotifyArtist, AvailabilityWithData<Artist>> ArtistConverter = new ArtistConverter();
+	private static final Converter<SpotifyAlbum, AvailabilityWithData<Album>> AlbumConverter = new AlbumConverter();
+	private static final Converter<SpotifySong, AvailabilityWithData<Song>> SongConverter = new SongConverter();
+
+	private final SpotifyAPI spotifyAPI;
+
+	public Spotify() {
+		spotifyAPI = new RestAdapter.Builder()
+				.setEndpoint("https://api.spotify.com")
+				.setErrorHandler(new JSearchErrorHandler())
+				.build()
+				.create(SpotifyAPI.class);
+	}
 
 
-    public Spotify() {
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint("https://com.joey.jseach.api.spotify.com")
-                .build();
+	@Override
+	public List<AvailabilityWithData<Artist>> searchArtist(String artist) throws JSearchException {
+		SpotifyResultArtist spotifyResult = spotifyAPI.searchArtist(artist);
+		List<AvailabilityWithData<Artist>> results = new ArrayList<>(spotifyResult.artists.items.size());
+		for (SpotifyArtist spotifyArtist : spotifyResult.artists.items) {
+			results.add(ArtistConverter.convert(spotifyArtist));
+		}
+		return results;
+	}
 
-        spofityAPI = restAdapter.create(SpofityAPI.class);
-    }
+	@Override
+	public List<AvailabilityWithData<Album>> searchAlbum(String album) throws JSearchException {
+		SpotifyResultAlbum resultAlbum = spotifyAPI.searchAlbum(album);
+		List<AvailabilityWithData<Album>> results = new ArrayList<>(resultAlbum.albums.items.size());
+		for (SpotifyAlbum spotifyAlbum : resultAlbum.albums.items) {
+			results.add(AlbumConverter.convert(spotifyAlbum));
+		}
+		return results;
+	}
 
-    @Override
-    public void searchArtist(String query, final JSearchCallback<List<SearchItem<Artist>>> cb) {
-        spofityAPI.search(query, SpofityAPI.SearchType.Artist.apiValue(), new Callback<ArrayList<SpotifyItem>>() {
-            @Override
-            public void success(ArrayList<SpotifyItem> spotifyItems, Response response) {
-                if (spotifyItems != null) {
+	@Override
+	public List<AvailabilityWithData<Song>> searchSong(String song) throws JSearchException {
+		SpotifyResultSong spotifyResult = spotifyAPI.searchSong(song);
+		List<AvailabilityWithData<Song>> results = new ArrayList<>();
+		for (SpotifySong spotifySong : spotifyResult.tracks.items) {
+			results.add(SongConverter.convert(spotifySong));
+		}
+		return results;
+	}
 
-                    List<SearchItem<Artist>> results = new ArrayList<>();
 
-                    for (SpotifyItem spotifyItem : spotifyItems) {
-                        Artist artist = new Artist("todo artistname");
-                        results.add(new SearchItem<Artist>(artist, null));
-                    }
+	private static class ArtistConverter implements Converter<SpotifyArtist, AvailabilityWithData<Artist>> {
+		@Override
+		public AvailabilityWithData<Artist> convert(SpotifyArtist spotifyArtist) {
+			Artist artist = new Artist(spotifyArtist.name, null);
+			Availibility availibility = new SpotifyAvailability("http://open.spotify.com/artist/"+spotifyArtist.id);
+			return new AvailabilityWithData<>(artist, availibility);
+		}
+	};
 
-                } else {
-                    failure(RetrofitError.unexpectedError(response.getUrl(), new IllegalArgumentException("no items!")));
-                }
-            }
+	private static class AlbumConverter implements Converter<SpotifyAlbum, AvailabilityWithData<Album>> {
 
-            @Override
-            public void failure(RetrofitError retrofitError) {
-            }
-        });
+		@Override
+		public AvailabilityWithData<Album> convert(SpotifyAlbum input) {
+			Availibility availibility = new SpotifyAvailability(input.externalUrls.spotify);
 
-    }
+			String imgUrl = null;
+			if (input.images != null && !input.images.isEmpty()) {
+				imgUrl = input.images.get(0).url;
+			}
+			Album data = new Album(input.name, imgUrl);
 
-    @Override
-    public void searchAlbum(String album, JSearchCallback<List<SearchItem<Album>>> cb) {
+			return new AvailabilityWithData<>(data, availibility);
+		}
+	};
 
-    }
-
-    @Override
-    public void searchSong(String song, JSearchCallback<List<SearchItem<Song>>> cb) {
-
-    }
-
-    private static class SpotifyAvailability implements Availibility {
-
-        @Override
-        public String getName() {
-            return "Spotify";
-        }
-
-        @Override
-        public String getDeepLink() {
-            return null;
-        }
-
-        @Override
-        public String getIcon() {
-            return null;
-        }
-    }
+	private static class SongConverter implements Converter<SpotifySong, AvailabilityWithData<Song>> {
+		@Override
+		public AvailabilityWithData<Song> convert(SpotifySong input) {
+			Availibility availibility = new SpotifyAvailability(input.externalUrls.spotify);
+			String artistName = null;
+			if (input.artists != null && !input.artists.isEmpty()) {
+				artistName = input.artists.get(0).name;
+			}
+			Song song = new Song(input.name, input.album.name, artistName, null);
+			return new AvailabilityWithData<>(song, availibility);
+		}
+	};
 }

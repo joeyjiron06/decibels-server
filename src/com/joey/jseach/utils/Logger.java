@@ -1,4 +1,4 @@
-package com.joey.jseach;
+package com.joey.jseach.utils;
 
 public class Logger {
 	public static void log(String tag, String message) {
