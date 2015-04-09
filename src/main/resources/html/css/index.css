@@ -10,19 +10,88 @@
 }
 */
 
-#searchResults {
-    list-style: none;
+
+* { margin: 0; padding: 0; }
+
+body {
+    width: 100%;
+    height: 100%;
+    display: block;
+    margin: 0;    
 }
 
-.searchCell {
-    border-top-style:dotted;
-    border-top-width: thin;
-    border-top-color: #999;
-    transition: 250ms ease-in-out;
-    padding: 10px;
+html {
+    width: 100%;
+    height: 100%;
 }
 
-.searchCell:hover {
-    background: #ccc;
-    transform: scale(1.05);
+#mainContainer {
+    width: 100%;
+    height : 100%;
+    position: relative;
+    color: #fff;
+/*    font-family: Norwester;*/
+    font-size: 30px;
+    background: url("../img/dbBackground.jpg") no-repeat center center scroll;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
+
+#overlay {
+    background: #000;
+    opacity: 0.5;
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100%;
+}
+
+#content {
+    text-align: center;
+    position: relative;
+}
+
+#logo {
+    margin: auto;
+    display: inline-block;
+    margin-top: 50px;
+}
+
+#logo img{
+    float: left;
+    margin-right: 50px;
+}
+
+#logo p {
+    float: left;
+    padding-top: 190px;
+    font-size: 2em;
+    font-family: sans-serif;
+}
+
+#input {
+    width: 40%;
+    height: 40px;
+    margin-top: 50px;
+    font-size: 30px;
+}
+
+#subtitle {
+    margin-top: 75px;
+}
+
+/* make sure parent's */
+
+.center_vertical {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+}
+

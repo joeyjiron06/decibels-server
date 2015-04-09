@@ -8,16 +8,21 @@
 </head>
 
 <body>
-    <input id="searchInput" type="text"/>
-    <select id="searchOptions">
-        <option>artist</option>
-        <option>album</option>
-        <option>song</option>
-    </select>
-    <button id="searchButton">Search</button>
+    <div id="mainContainer">
+        <div id="overlay"></div>
+        <div id="content" >
+            <div id="logo">
+                <img src="img/logo.png"/>
+                <p>decibel</p>
+            </div>
+            <div>
+                <form action="/search" method="get">
+                    <input type="text" id="input" name="q" autocomplete="off" placeholder="Search" value>
+                </form>
+            </div>
+            <p id="subtitle">Find where to listen to your music now</p>
+        </div>
+    </div>
 
-    <br></br>
-    <h2 id="resultsTitle">Results</h2>
-    <ul id="searchResults"></ul>
 </body>
 </html>
