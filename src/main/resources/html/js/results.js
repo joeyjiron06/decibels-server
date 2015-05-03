@@ -3,6 +3,7 @@
 
 
 
+var TEST_RESULTS_EMPTY = {};
 var TEST_RESULTS =
 {
     "artists" : [
@@ -16,7 +17,80 @@ var TEST_RESULTS =
                     "image": "https://farm9.staticflickr.com/8748/16896578316_ca5cbf8da6_t.jpg"
                 }
             ]
+        },
+
+        {
+            "artist": "Rooney",
+            "image": "http://upload.wikimedia.org/wikipedia/en/6/64/Black_Sabbath_-_Paranoid.jpg",
+            "availabilites": [
+                {
+                    "name": "Spotify",
+                    "deep_link": "https://open.spotify.com/track/3LGUsgNrsptmc9SFqVNZyD",
+                    "image": "https://farm9.staticflickr.com/8748/16896578316_ca5cbf8da6_t.jpg"
+                }
+            ]
+        },
+
+        {
+            "artist": "Rooney",
+            "image": "http://upload.wikimedia.org/wikipedia/en/6/64/Black_Sabbath_-_Paranoid.jpg",
+            "availabilites": [
+                {
+                    "name": "Spotify",
+                    "deep_link": "https://open.spotify.com/track/3LGUsgNrsptmc9SFqVNZyD",
+                    "image": "https://farm9.staticflickr.com/8748/16896578316_ca5cbf8da6_t.jpg"
+                }
+            ]
+        },
+
+        {
+            "artist": "Rooney",
+            "image": "http://upload.wikimedia.org/wikipedia/en/6/64/Black_Sabbath_-_Paranoid.jpg",
+            "availabilites": [
+                {
+                    "name": "Spotify",
+                    "deep_link": "https://open.spotify.com/track/3LGUsgNrsptmc9SFqVNZyD",
+                    "image": "https://farm9.staticflickr.com/8748/16896578316_ca5cbf8da6_t.jpg"
+                }
+            ]
+        },
+
+        {
+            "artist": "Rooney",
+            "image": "http://upload.wikimedia.org/wikipedia/en/6/64/Black_Sabbath_-_Paranoid.jpg",
+            "availabilites": [
+                {
+                    "name": "Spotify",
+                    "deep_link": "https://open.spotify.com/track/3LGUsgNrsptmc9SFqVNZyD",
+                    "image": "https://farm9.staticflickr.com/8748/16896578316_ca5cbf8da6_t.jpg"
+                }
+            ]
+        },
+
+        {
+            "artist": "Rooney",
+            "image": "http://upload.wikimedia.org/wikipedia/en/6/64/Black_Sabbath_-_Paranoid.jpg",
+            "availabilites": [
+                {
+                    "name": "Spotify",
+                    "deep_link": "https://open.spotify.com/track/3LGUsgNrsptmc9SFqVNZyD",
+                    "image": "https://farm9.staticflickr.com/8748/16896578316_ca5cbf8da6_t.jpg"
+                }
+            ]
+        },
+
+        {
+            "artist": "Rooney",
+            "image": "http://upload.wikimedia.org/wikipedia/en/6/64/Black_Sabbath_-_Paranoid.jpg",
+            "availabilites": [
+                {
+                    "name": "Spotify",
+                    "deep_link": "https://open.spotify.com/track/3LGUsgNrsptmc9SFqVNZyD",
+                    "image": "https://farm9.staticflickr.com/8748/16896578316_ca5cbf8da6_t.jpg"
+                }
+            ]
         }
+
         ],
     "albums" : [
         {
@@ -93,20 +167,6 @@ function createResultView(result) {
     return view;              
 }
 
-function updateResults(results) {
-    var resultsUIList = $("#results");
-    resultsUIList.empty();
-
-
-    var artists = results.artists;
-    var albums = results.albums;
-    var songs = results.songs;
-}
-
-//$(document).ready(function() {
-//    updateResults(TEST_RESULTS);
-//});
-
 (function() {
     var app = angular.module('decibels', []);
 
@@ -114,6 +174,10 @@ function updateResults(results) {
         this.artists = TEST_RESULTS.artists;
         this.albums = TEST_RESULTS.albums;
         this.songs = TEST_RESULTS.songs;
+
+        this.hasItems = function() {
+            return this.hasArtists() || this.hasAlbums() || this.hasSongs();
+        }
 
         this.hasArtists = function() {
             return !Arrays.isEmptyOrNull(this.artists);

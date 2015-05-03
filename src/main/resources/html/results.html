@@ -17,8 +17,8 @@
         
     </div>
     
-    
-    <div class="results-container">
+    <dialog class="modal">This is the dialog!</dialog>    
+    <div class="results-container" ng-controller="ResultsController as results">
         <nav class="hover-effect">
             <ul id="filters" >
                 <li><a>All</a></li>
@@ -28,22 +28,26 @@
             </ul>
         </nav>
 
+        <div ng-hide="results.hasItems()">
+            <h1>Could not find anything, sorry.</h1>
+        </div>
 
-        <div class="results-div" ng-controller="ResultsController as results">
+        <div class="results-div" ng-show="results.hasItems()">
             <!-- ARTISTS -->
-            <div class="results-hlist" ng-show="results.hasArtists()">
-                <p class="title">Artists</p>
+            <div class="results-list" ng-show="results.hasArtists()">
+                <p class="results-list-title">Artists</p>
                 <ul>
                     <li ng-repeat="artist in results.artists">
                         <img src={{artist.image}} width="144" height="144"/>
                         <p class="results-title">{{artist.artist}} </p>
                     </li>
                 </ul>
-            </div> <!-- artists -->
+            </div>
+            <!-- ARTISTS -->
 
             <!-- ALBUMS -->
-            <div class="results-hlist" ng-show="results.hasAlbums()">
-                <p class="title">Albums</p>
+            <div class="results-list" ng-show="results.hasAlbums()">
+                <p class="results-list-title">Albums</p>
                 <ul>
                     <li ng-repeat="album in results.albums">
                         <img src={{album.image}} width="144" height="144"/>
@@ -51,25 +55,28 @@
                         <p class="results-sub-title">{{album.artist}} </p>
                     </li>
                 </ul>
-            </div> <!-- albums -->
+            </div>
+            <!-- ALBUMS -->
 
             <!-- SONGS -->
-            <table ng-show="results.hasSongs()">
-                <tr>
-                    <th>Name</th>
-                    <th>Artist</th>
-                    <th>Album</th>
-                    <th>Time</th>
-                </tr>
-                <tr ng-repeat="song in results.songs">
-                    <td>{{song.name}}</td>
-                    <td>{{song.artist}}</td>
-                    <td>{{song.album}}</td>
-                    <td>{{song.time}}</td>
-                </tr>
-            </table>
+            <div class="results-list" ng-show="results.hasAlbums()">
+                <p class="results-list-title">Songs</p>
+                <table class="results-songs" ng-show="results.hasSongs()" width="100%">
+                    <tr>
+                        <th>Name</th>
+                        <th>Artist</th>
+                        <th>Album</th>
+                        <th>Time</th>
+                    </tr>
+                    <tr ng-repeat="song in results.songs">
+                        <td>{{song.name}}</td>
+                        <td>{{song.artist}}</td>
+                        <td>{{song.album}}</td>
+                        <td>{{song.time}}</td>
+                    </tr>
+                </table>
+            </div>
             <!-- SONGS -->
-
         </div> <!-- results div -->
     </div>
 </body>
