@@ -5,8 +5,10 @@ import com.joey.jseach.core.Album;
 import com.joey.jseach.core.Song;
 import com.joey.jseach.search.AvailabilityWithData;
 import com.joey.jseach.search.JSearchException;
+import com.joey.jseach.search.SearchType;
 
 import java.util.List;
+import java.util.Set;
 
 public interface MusicQuerier {
 
@@ -32,4 +34,7 @@ public interface MusicQuerier {
 	 *
 	 * */
 	List<AvailabilityWithData<Song>> searchSong(String song) throws JSearchException;
+
+
+	MusicQuerierSearchResult search(String query, Set<SearchType> searchTypes) throws JSearchException;
 }

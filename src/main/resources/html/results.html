@@ -4,22 +4,21 @@
 	<link rel="stylesheet" type="text/css" href="css/results.css">
     <script type="application/javascript" src="app/angular.min.js"></script>
     <script type="application/javascript" src="app/jquery.min.js"></script>
-    <script type="application/javascript" src="app/test/testresults.js"></script>
     <script type="application/javascript" src="app/results.js"></script>
 	<title>Decibels</title>
 </head>
 
-<body ng-app="decibels">
+<body ng-app="decibels" ng-controller="ResultsController as results">
     <div id="toolbar">
         <img id="logo" class="vert_align" src="img/db-logo-white.png"/>
         <span class="span_right vert_align">
-            <input class="search_field center_vert" type="search" placeholder="Search Artists, Albums, Songs" value="black Sabbath" autofocus/>
+            <input class="search_field center_vert" type="search" placeholder="Search Artists, Albums, Songs"
+                    value="black Sabbath"  ng-enter="search()" ng-model="query" autofocus/>
         </span>
         
     </div>
     
-    <dialog class="modal">This is the dialog!</dialog>    
-    <div class="results-container" ng-controller="ResultsController as results">
+    <div class="results-container" >
         <nav class="hover-effect">
             <ul id="filters" >
                 <li><a>All</a></li>
@@ -40,7 +39,7 @@
                 <ul>
                     <li ng-repeat="artist in results.artists">
                         <img src={{artist.image}} width="144" height="144"/>
-                        <p class="results-title">{{artist.artist}} </p>
+                        <p class="results-title">{{artist.name}} </p>
                     </li>
                 </ul>
             </div>

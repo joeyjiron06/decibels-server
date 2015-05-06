@@ -8,14 +8,10 @@ import com.joey.jseach.search.AvailabilityWithData;
 import com.joey.jseach.search.JSearchException;
 import com.joey.jseach.search.AvailabilitiesList;
 import com.joey.jseach.search.SearchType;
-import com.joey.jseach.search.interfaces.Availibility;
-import com.joey.jseach.search.interfaces.MusicQuerier;
-import com.joey.jseach.search.interfaces.MusicSearchEngine;
+import com.joey.jseach.search.interfaces.*;
+import org.eclipse.jetty.server.handler.ContextHandler;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 
@@ -42,6 +38,35 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 	@Override
 	public List<AvailabilitiesList<Song>> searchSong(String song) throws JSearchException {
 		return search(song, SearchType.Song);
+	}
+
+	@Override
+	public MusicSearchEngineResult search(String query, Set<SearchType> searchTypes) throws JSearchException {
+		Map<Artist, List<Availibility>> artistsMap = new HashMap<>();
+
+
+		//query using all music queries and add them to a master list
+		for (MusicQuerier musicQuerier : musicQueriers) {
+			MusicQuerierSearchResult searchResult = musicQuerier.search(query, searchTypes);
+
+			//look for artist in map
+			//if found then update the artist
+			//else add it to the map and list
+			List<AvailabilityWithData<Artist>> artists = searchResult.getArtists();
+
+
+
+
+
+		}
+
+
+
+		List<AvailabilitiesList<Artist>> artistsList = new ArrayList<>();
+		List<AvailabilitiesList<Album>> albumsList = new ArrayList<>();
+		List<AvailabilitiesList<Song>> songsList = new ArrayList<>();
+
+		return new MusicSearchEngineResult(artistsList, albumsList, songsList);
 	}
 
 	private <T> List<AvailabilitiesList<T>> search(String query, SearchType searchType) throws JSearchException {
@@ -74,9 +99,6 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 		}
 
 		return results;
-	}
-
-	private static <T> void addToMap(Map<T, List<Availibility>> availabilitiestMap, List<AvailabilityWithData<T>> results) {
 	}
 
 	/**
