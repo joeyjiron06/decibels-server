@@ -1,6 +1,7 @@
 package com.joey.jseach.search.implementations;
 
 import com.joey.jseach.api.spotify.Spotify;
+import com.joey.jseach.api.spotify.SpotifyResult;
 import com.joey.jseach.core.Album;
 import com.joey.jseach.core.Artist;
 import com.joey.jseach.core.Song;
@@ -41,32 +42,72 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 	}
 
 	@Override
-	public MusicSearchEngineResult search(String query, Set<SearchType> searchTypes) throws JSearchException {
+	public MusicSearchEngineResult search(String query, List<SearchType> searchTypes) throws JSearchException {
 		Map<Artist, List<Availibility>> artistsMap = new HashMap<>();
-
+		Map<Album, List<Availibility>> albumsMap = new HashMap<>();
+		Map<Song, List<Availibility>> songsMap = new HashMap<>();
 
 		//query using all music queries and add them to a master list
 		for (MusicQuerier musicQuerier : musicQueriers) {
 			MusicQuerierSearchResult searchResult = musicQuerier.search(query, searchTypes);
 
-			//look for artist in map
-			//if found then update the artist
-			//else add it to the map and list
-			List<AvailabilityWithData<Artist>> artists = searchResult.getArtists();
+			if (searchResult != null) {
+				List<AvailabilityWithData<Artist>> artists = searchResult.getArtists();
+				List<AvailabilityWithData<Album>> albums = searchResult.getAlbums();
+				List<AvailabilityWithData<Song>> songs = searchResult.getSongs();
 
-
-
-
-
+				populateMap(artistsMap, artists);
+				populateMap(albumsMap, albums);
+				populateMap(songsMap, songs);
+			}
 		}
 
-
-
-		List<AvailabilitiesList<Artist>> artistsList = new ArrayList<>();
-		List<AvailabilitiesList<Album>> albumsList = new ArrayList<>();
-		List<AvailabilitiesList<Song>> songsList = new ArrayList<>();
+		List<AvailabilitiesList<Artist>> artistsList = converMapToList(artistsMap);
+		List<AvailabilitiesList<Album>> albumsList = converMapToList(albumsMap);
+		List<AvailabilitiesList<Song>> songsList = converMapToList(songsMap);
 
 		return new MusicSearchEngineResult(artistsList, albumsList, songsList);
+	}
+
+	private static <T> void populateMap(Map<T, List<Availibility>> dataMap, List<AvailabilityWithData<T>> dataList) {
+		if (dataList != null) {
+			for (AvailabilityWithData<T> availabilityWithData : dataList) {
+				T data = availabilityWithData.getData();
+				Availibility availibility = availabilityWithData.getAvailibility();
+				//look for artist in map
+				List<Availibility> availibilities = dataMap.get(data);
+				if (availibilities == null) {
+					availibilities = new ArrayList<>();
+					dataMap.put(data, availibilities);
+				}
+
+				//if availibility isnt in the list then add it
+				boolean containsAvailability = false;
+
+				for (Availibility a : availibilities) {
+					if (availibility.getName().equals(a.getName())) {
+						containsAvailability = true;
+						break;
+					}
+				}
+
+				if (!containsAvailability) {
+					availibilities.add(availibility);
+				}
+
+			}
+		}
+	}
+
+	private static <T> List<AvailabilitiesList<T>> converMapToList(Map<T, List<Availibility>> dataMap) {
+		List<AvailabilitiesList<T>> results = new ArrayList<>();
+
+		for (T data : dataMap.keySet()) {
+			List<Availibility> availibilities = dataMap.get(data);
+			results.add(new AvailabilitiesList<>(data, availibilities));
+		}
+
+		return results;
 	}
 
 	private <T> List<AvailabilitiesList<T>> search(String query, SearchType searchType) throws JSearchException {

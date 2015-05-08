@@ -6,12 +6,15 @@ import com.joey.jseach.core.Song;
 import com.joey.jseach.search.AvailabilitiesList;
 import com.joey.jseach.search.JSearchException;
 import com.joey.jseach.search.SearchType;
+import com.joey.jseach.utils.JSU;
+import spark.utils.CollectionUtils;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 public interface MusicSearchEngine {
+
+	List<SearchType> SEARCH_TYPES_ALL = Arrays.asList(SearchType.values());
 
 	/**
 	 * @param artist the artist to search for
@@ -35,6 +38,6 @@ public interface MusicSearchEngine {
 	 * @param query the query for artists, albums, songs
 	 * @param searchTypes a set of types to search for
 	 * */
-	MusicSearchEngineResult search(String query, Set<SearchType> searchTypes) throws JSearchException;
+	MusicSearchEngineResult search(String query, List<SearchType> searchTypes) throws JSearchException;
 }
 

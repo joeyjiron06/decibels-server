@@ -36,5 +36,5 @@ public interface MusicQuerier {
 	List<AvailabilityWithData<Song>> searchSong(String song) throws JSearchException;
 
 
-	MusicQuerierSearchResult search(String query, Set<SearchType> searchTypes) throws JSearchException;
+	MusicQuerierSearchResult search(String query, List<SearchType> searchTypes) throws JSearchException;
 }

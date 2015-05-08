@@ -21,6 +21,18 @@ public class MusicSearchEngineResult implements JsonSerializable {
 		this.songs = songs;
 	}
 
+	public List<AvailabilitiesList<Artist>> getArtists() {
+		return artists;
+	}
+
+	public List<AvailabilitiesList<Album>> getAlbums() {
+		return albums;
+	}
+
+	public List<AvailabilitiesList<Song>> getSongs() {
+		return songs;
+	}
+
 
 	@Override
 	public JsonObject toJson() {

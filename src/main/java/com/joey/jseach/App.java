@@ -6,7 +6,7 @@ import com.joey.jseach.search.JSearchException;
 import com.joey.jseach.search.SearchType;
 import com.joey.jseach.search.implementations.JMusicSearchEngine;
 import com.joey.jseach.search.interfaces.MusicSearchEngine;
-import com.joey.jseach.utils.Strings;
+import com.joey.jseach.utils.JSU;
 
 import java.util.*;
 
@@ -84,14 +84,14 @@ public class App {
 			}
 
 			//getInstance search types for search engine
-			Set<SearchType> searchTypes = new HashSet<SearchType>();
+			List<SearchType> searchTypes = new ArrayList<>();
 
-			if (Strings.isNullOrEmpty(type)) {
+			if (JSU.isNullOrEmpty(type)) {
 				//default to all search types
 				searchTypes.addAll(Arrays.asList(SearchType.values()));
 			} else {
 				//split types and add to set
-				String[] typesList = Strings.safeSplit(type);
+				String[] typesList = JSU.safeSplit(type);
 				for (String typeItem : typesList) {
 					SearchType searchType = SearchType.fromApiValue(typeItem);
 					if (searchType != null) {

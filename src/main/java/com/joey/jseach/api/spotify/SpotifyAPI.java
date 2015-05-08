@@ -4,22 +4,15 @@ import retrofit.http.GET;
 import retrofit.http.Query;
 
 public interface SpotifyAPI {
-	/**
-	 * @param artist the query string
-	 * @param cb     the callback received when query is finished
-	 * */
-	@GET("/v1/search?type=artist")
-	SpotifyResultArtist searchArtist(@Query(value = "q", encodeName = true) String artist);
+	String TYPE_ARTIST = "artist";
+	String TYPE_ALBUM = "album";
+	String TYPE_TRACK = "track";
+
 
 	/**
-	 * @param album the query string
+	 * @param query the text to query for.
+	 * @param type a comma separated list of types. see types above
 	 * */
-	@GET("/v1/search?type=album")
-	SpotifyResultAlbum searchAlbum(@Query(value = "q", encodeName = true) String album);
-
-	/**
-	 * @param song the query string
-	 * */
-	@GET("/v1/search?type=track")
-	SpotifyResultSong searchSong(@Query(value = "q", encodeName = true) String song);
+	@GET("/v1/search")
+	SpotifyResult search(@Query(value = "q", encodeName = true) String query, @Query(value = "type") String type);
 }

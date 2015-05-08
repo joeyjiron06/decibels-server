@@ -1,6 +1,10 @@
 package test;
 
 import com.joey.jseach.App;
+import com.joey.jseach.api.spotify.SpotifyResult;
+import com.joey.jseach.search.interfaces.MusicSearchEngine;
+import com.joey.jseach.search.interfaces.MusicSearchEngineResult;
+import com.joey.jseach.utils.JSU;
 import com.joey.jseach.utils.Logger;
 import com.joey.jseach.api.spotify.Spotify;
 import com.joey.jseach.core.Album;
@@ -22,14 +26,13 @@ public class SearchTests {
 		Logger.log("SearchTests", message);
 	}
 
+	private static MusicSearchEngine SearchEngine = App.getInstance().getSearchEngine();
+
 	@Test
 	public void searchArtists() {
 		List<AvailabilitiesList<Artist>> artistResults = null;
 		try {
-			artistResults = App.INSTANCE.getSearchEngine().searchArtist("allman brothers");
-			for (AvailabilitiesList<Artist> artistResult : artistResults) {
-				log(artistResult.toString());
-			}
+			artistResults = SearchEngine.searchArtist("allman brothers");
 
 		} catch (JSearchException e) {
 			log(e.toString());
@@ -42,10 +45,7 @@ public class SearchTests {
 	public void searchSong() {
 		List<AvailabilitiesList<Song>> songResults = null;
 		try {
-			songResults = App.INSTANCE.getSearchEngine().searchSong("call me");
-			for (AvailabilitiesList<Song> songResult : songResults) {
-				log(songResult.toString());
-			}
+			songResults = SearchEngine.searchSong("call me");
 		} catch (JSearchException e) {
 			e.printStackTrace();
 		}
@@ -58,15 +58,29 @@ public class SearchTests {
 		List<AvailabilitiesList<Album>> albums = null;
 
 		try {
-			albums = App.INSTANCE.getSearchEngine().searchAlbum("mob rules");
-			for (AvailabilitiesList<Album> album : albums) {
-				log(album.toString());
-			}
+			albums = SearchEngine.searchAlbum("mob rules");
 		} catch (JSearchException e) {
 			e.printStackTrace();
 		}
 
 		assertTrue(albums != null && !albums.isEmpty());
+	}
+
+	@Test
+	public void searchAll() {
+		MusicSearchEngineResult searchEngineResult = SearchEngine.search("bl", MusicSearchEngine.SEARCH_TYPES_ALL);
+
+		assert(searchEngineResult != null);
+
+		if (searchEngineResult != null) {
+			List<AvailabilitiesList<Artist>> artists = searchEngineResult.getArtists();
+			List<AvailabilitiesList<Album>> albums = searchEngineResult.getAlbums();
+			List<AvailabilitiesList<Song>> songs = searchEngineResult.getSongs();
+
+			assert(!JSU.isNullOrEmpty(artists));
+			assert(!JSU.isNullOrEmpty(albums));
+			assert(!JSU.isNullOrEmpty(songs));
+		}
 	}
 
 	@Test
@@ -76,10 +90,7 @@ public class SearchTests {
 		try {
 			List<AvailabilityWithData<Album>> results = spotify.searchAlbum("mob rules");
 
-			for (AvailabilityWithData<Album> albumAvailabilityWithData : results) {
-				log(albumAvailabilityWithData.toString());
-			}
-
+			assert(!JSU.isNullOrEmpty(results));
 		} catch (JSearchException e) {
 			log("exception thrown " + e);
 		}
