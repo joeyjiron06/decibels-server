@@ -1,7 +1,6 @@
 package com.joey.jseach.search.implementations;
 
 import com.joey.jseach.api.spotify.Spotify;
-import com.joey.jseach.api.spotify.SpotifyResult;
 import com.joey.jseach.core.Album;
 import com.joey.jseach.core.Artist;
 import com.joey.jseach.core.Song;
@@ -10,7 +9,6 @@ import com.joey.jseach.search.JSearchException;
 import com.joey.jseach.search.AvailabilitiesList;
 import com.joey.jseach.search.SearchType;
 import com.joey.jseach.search.interfaces.*;
-import org.eclipse.jetty.server.handler.ContextHandler;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -20,25 +18,48 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 
 	private final List<MusicQuerier> musicQueriers;
 
+	private static final List<SearchType> SEARCH_TYPE_ARTIST = Collections.singletonList(SearchType.Artist);
+	private static final List<SearchType> SEARCH_TYPE_ALBUM = Collections.singletonList(SearchType.Album);
+	private static final List<SearchType> SEARCH_TYPE_SONG = Collections.singletonList(SearchType.Song);
+
 	public JMusicSearchEngine() {
 		musicQueriers = new ArrayList<>();
 		musicQueriers.add(new Spotify());
 	}
 
+/* - MusicSearchEngine INTERFACE */
 
 	@Override
 	public List<AvailabilitiesList<Artist>> searchArtist(String artist) throws JSearchException {
-		return search(artist, SearchType.Artist);
+		MusicSearchEngineResult result =  search(artist, SEARCH_TYPE_ARTIST);
+
+		if (result != null) {
+			return result.getArtists();
+		}
+
+		return null;
 	}
 
 	@Override
 	public List<AvailabilitiesList<Album>> searchAlbum(String album) throws JSearchException {
-		return search(album, SearchType.Album);
+		MusicSearchEngineResult result =  search(album, SEARCH_TYPE_ALBUM);
+
+		if (result != null) {
+			return result.getAlbums();
+		}
+
+		return null;
 	}
 
 	@Override
 	public List<AvailabilitiesList<Song>> searchSong(String song) throws JSearchException {
-		return search(song, SearchType.Song);
+		MusicSearchEngineResult result =  search(song, SEARCH_TYPE_SONG);
+
+		if (result != null) {
+			return result.getSongs();
+		}
+
+		return null;
 	}
 
 	@Override
@@ -47,27 +68,55 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 		Map<Album, List<Availibility>> albumsMap = new HashMap<>();
 		Map<Song, List<Availibility>> songsMap = new HashMap<>();
 
+		CountDownLatch countDownLatch = new CountDownLatch(musicQueriers.size());
+
 		//query using all music queries and add them to a master list
 		for (MusicQuerier musicQuerier : musicQueriers) {
-			MusicQuerierSearchResult searchResult = musicQuerier.search(query, searchTypes);
+			new Thread() {
+				@Override
+				public void run() {
+					MusicQuerierSearchResult searchResult = musicQuerier.search(query, searchTypes);
 
-			if (searchResult != null) {
-				List<AvailabilityWithData<Artist>> artists = searchResult.getArtists();
-				List<AvailabilityWithData<Album>> albums = searchResult.getAlbums();
-				List<AvailabilityWithData<Song>> songs = searchResult.getSongs();
+					if (searchResult != null) {
+						List<AvailabilityWithData<Artist>> artists = searchResult.getArtists();
+						List<AvailabilityWithData<Album>> albums = searchResult.getAlbums();
+						List<AvailabilityWithData<Song>> songs = searchResult.getSongs();
 
-				populateMap(artistsMap, artists);
-				populateMap(albumsMap, albums);
-				populateMap(songsMap, songs);
-			}
+						synchronized (artistsMap) {
+							populateMap(artistsMap, artists);
+						}
+
+						synchronized (albumsMap) {
+							populateMap(albumsMap, albums);
+						}
+
+						synchronized (songsMap) {
+							populateMap(songsMap, songs);
+						}
+					}
+
+					synchronized (countDownLatch) {
+						countDownLatch.countDown();
+					}
+				}
+			}.start();
 		}
 
-		List<AvailabilitiesList<Artist>> artistsList = converMapToList(artistsMap);
-		List<AvailabilitiesList<Album>> albumsList = converMapToList(albumsMap);
-		List<AvailabilitiesList<Song>> songsList = converMapToList(songsMap);
+		//wait for all threads to finish
+		try {
+			countDownLatch.await();
+		} catch (InterruptedException e) {
+			throw new JSearchException(JSearchException.Reason.Unexpected, "no successful search results");
+		}
+
+		List<AvailabilitiesList<Artist>> artistsList = convertMap(artistsMap);
+		List<AvailabilitiesList<Album>> albumsList = convertMap(albumsMap);
+		List<AvailabilitiesList<Song>> songsList = convertMap(songsMap);
 
 		return new MusicSearchEngineResult(artistsList, albumsList, songsList);
 	}
+
+/* - UTILITY FUNCTIONS */
 
 	private static <T> void populateMap(Map<T, List<Availibility>> dataMap, List<AvailabilityWithData<T>> dataList) {
 		if (dataList != null) {
@@ -82,16 +131,7 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 				}
 
 				//if availibility isnt in the list then add it
-				boolean containsAvailability = false;
-
-				for (Availibility a : availibilities) {
-					if (availibility.getName().equals(a.getName())) {
-						containsAvailability = true;
-						break;
-					}
-				}
-
-				if (!containsAvailability) {
+				if (!contains(availibilities, availibility)) {
 					availibilities.add(availibility);
 				}
 
@@ -99,7 +139,7 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 		}
 	}
 
-	private static <T> List<AvailabilitiesList<T>> converMapToList(Map<T, List<Availibility>> dataMap) {
+	private static <T> List<AvailabilitiesList<T>> convertMap(Map<T, List<Availibility>> dataMap) {
 		List<AvailabilitiesList<T>> results = new ArrayList<>();
 
 		for (T data : dataMap.keySet()) {
@@ -110,99 +150,16 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 		return results;
 	}
 
-	private <T> List<AvailabilitiesList<T>> search(String query, SearchType searchType) throws JSearchException {
-
-
-		//Ask all queriers to query for the input
-
-		CountDownLatch countDownLatch = new CountDownLatch(musicQueriers.size());
-		Map<T, List<Availibility>> map = new HashMap<>();
-
-		for (MusicQuerier musicQuerier : musicQueriers) {
-			new SearchThread<T>(searchType, countDownLatch, query, musicQuerier, map).start();
-		}
-
-		try {
-			//wait for all queries to finish
-			countDownLatch.await();
-		} catch (InterruptedException e) {
-			throw new JSearchException(JSearchException.Reason.Unexpected, "no successful search results");
-		}
-
-
-		//convert map to returnable list of data
-
-		List<AvailabilitiesList<T>> results = new ArrayList<>();
-
-		for (T data : map.keySet()) {
-			List<Availibility> availibilities = map.get(data);
-			results.add(new AvailabilitiesList<>(data, availibilities));
-		}
-
-		return results;
-	}
-
-	/**
-	 * Asks the music querier for the appropriate data given the search type and other parameters.
-	 *
-	 * */
-	private static class SearchThread<T> extends Thread {
-
-		private final CountDownLatch latch;
-		private final String query;
-		private final SearchType type;
-		private final MusicQuerier querier;
-		private final Map<T, List<Availibility>> map;
-
-		private SearchThread(SearchType searchType, CountDownLatch latch, String query, MusicQuerier querier, Map<T, List<Availibility>> map) {
-			this.type = searchType;
-			this.latch = latch;
-			this.query = query;
-			this.querier = querier;
-			this.map = map;
-		}
-
-		@Override
-		public void run() {
-			try {
-				List<AvailabilityWithData<T>> results = type.apply(query, querier);
-
-
-				//add results to the map
-				synchronized (map) {
-					for (AvailabilityWithData<T> result : results) {
-						Availibility availibility = result.getAvailibility();
-						T data = result.getData();
-
-						List<Availibility> availibilityList = map.get(data);
-
-						if (availibilityList == null) {
-							availibilityList = new ArrayList<>();
-							map.put(data, availibilityList);
-						}
-
-						boolean containsAvailability = false;
-
-						for (Availibility a : availibilityList) {
-							if (availibility.getName().equals(a.getName())) {
-								containsAvailability = true;
-								break;
-							}
-						}
-
-						if (!containsAvailability) {
-							availibilityList.add(availibility);
-						}
-					}
+	private static boolean contains(List<Availibility> availibilities, Availibility availibility) {
+		String name = availibility.getName();
+		if (name != null) {
+			for (Availibility a : availibilities) {
+				if (name.equals(a.getName())) {
+					return true;
 				}
-
-			} catch (JSearchException exception) {
-				//nothing
-			}
-
-			synchronized (latch) {
-				latch.countDown();
 			}
 		}
+
+		return false;
 	}
 }

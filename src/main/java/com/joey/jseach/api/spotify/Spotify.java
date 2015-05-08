@@ -150,6 +150,7 @@ public class Spotify implements MusicQuerier {
 	}
 
 /* - CONVERTERS */
+
 	private static class ArtistConverter implements Converter<SpotifyResult.Artist, AvailabilityWithData<Artist>> {
 		@Override
 		public AvailabilityWithData<Artist> convert(SpotifyResult.Artist spotifyArtist) {
