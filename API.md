@@ -13,9 +13,9 @@ Search for artists, albums, tracks. Filter by types or query for all that match 
 | key     | value   | required   |
 |:-------:|:-------:|:----------:|
 | query | The search query's keyword url encoded | yes|
-| type  | Type is an array of any of the following types: *[artist, album, song]*. If no type is specified, then the default is to search all types. If you specify an invalid type then you will receive back the appropriate message. | no |
+| type  | Type is an array of any of the following types: *artist, album, song* (without any spaces). If no type is specified, then the default is to search all types. If you specify an invalid type then you will receive back the appropriate message. | no |
 
-You will receive an object back that contains the *type* you search for (remember if no type is specified than the default is all types). So if you specify ```type=[artist, album, song]``` you will get back an object that looks like this:
+You will receive an object back that contains the *type* you search for (remember if no type is specified than the default is all types). So if you specify ```type=artist,album,song``` you will get back an object that looks like this:
 
 ```json
 {
@@ -32,7 +32,7 @@ You will receive an object back that contains the *type* you search for (remembe
 
 *Request*
 
-```GET http://api.jsearch.com/search?query=rolling%20stones&type=[artist]```
+```GET http://api.jsearch.com/search?query=rolling%20stones&type=artist```
 
 *Response*
 
