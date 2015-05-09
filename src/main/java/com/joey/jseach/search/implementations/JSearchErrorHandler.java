@@ -14,10 +14,11 @@ public class JSearchErrorHandler implements ErrorHandler {
 		switch (kind) {
 			case NETWORK:
 			case HTTP:
-			case UNEXPECTED:
-				return new JSearchException(JSearchException.Reason.Network, error.getResponse());
+				return new JSearchException(JSearchException.Reason.Network, error);
 			case CONVERSION:
-				return new JSearchException(JSearchException.Reason.Parse, error.getResponse());
+				return new JSearchException(JSearchException.Reason.Parse, error);
+			case UNEXPECTED:
+				return new JSearchException(JSearchException.Reason.Unexpected, error);
 		}
 
 		return new IllegalStateException("retrofit error should be handled");

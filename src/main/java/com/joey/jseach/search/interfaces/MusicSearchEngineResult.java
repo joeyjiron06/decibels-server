@@ -6,7 +6,7 @@ import com.joey.jseach.core.Artist;
 import com.joey.jseach.core.Song;
 import com.joey.jseach.network.JsonSerializable;
 import com.joey.jseach.search.AvailabilitiesList;
-import com.joey.jseach.utils.JsonUtils;
+import com.joey.jseach.utils.JSU;
 
 import java.util.List;
 
@@ -38,9 +38,9 @@ public class MusicSearchEngineResult implements JsonSerializable {
 	public JsonObject toJson() {
 		JsonObject json = new JsonObject();
 
-		json.add("artists", JsonUtils.toJson(artists));
-		json.add("albums", JsonUtils.toJson(albums));
-		json.add("songs", JsonUtils.toJson(songs));
+		json.add("artists", JSU.toJson(artists));
+		json.add("albums", JSU.toJson(albums));
+		json.add("songs", JSU.toJson(songs));
 
 		return json;
 	}

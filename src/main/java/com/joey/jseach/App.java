@@ -65,7 +65,7 @@ public class App {
 		return musicSearchEngine;
 	}
 
-
+/* - M A I N */
 
 	public static void main(String[] args) {
 		final MusicSearchEngine SearchEngine = App.getInstance().getSearchEngine();
@@ -75,7 +75,7 @@ public class App {
 
 		get("/search", (request, response) -> {
 			QueryParamsMap params = request.queryMap();
-			String type = params.get("type").value();
+			String types = params.get("type").value();
 			String query = params.get("query").value();
 
 			//check for query
@@ -83,20 +83,35 @@ public class App {
 				halt(400, "Invalid request. You must specify a 'query' parameter.");
 			}
 
-			//getInstance search types for search engine
 			List<SearchType> searchTypes = new ArrayList<>();
 
-			if (JSU.isNullOrEmpty(type)) {
+			if (JSU.isNullOrEmpty(types)) {
 				//default to all search types
 				searchTypes.addAll(Arrays.asList(SearchType.values()));
 			} else {
 				//split types and add to set
-				String[] typesList = JSU.safeSplit(type);
+				String[] typesList = JSU.safeSplit(types);
+				List<String> badTypes = null;
+
 				for (String typeItem : typesList) {
 					SearchType searchType = SearchType.fromApiValue(typeItem);
 					if (searchType != null) {
 						searchTypes.add(searchType);
+					} else {
+						//user entered a bad type. add it to the list
+						if (badTypes == null) {
+							badTypes = new ArrayList<>();
+						}
+
+						if (!badTypes.contains(typeItem)) {
+							badTypes.add(typeItem);
+						}
 					}
+				}
+
+				if (!JSU.isNullOrEmpty(badTypes)) {
+					//user entered bad types. return a bad request
+					halt(400, "Invalid request. Bad type(s) " + JSU.combine(badTypes, ","));
 				}
 			}
 

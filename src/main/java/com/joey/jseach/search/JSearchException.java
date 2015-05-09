@@ -26,6 +26,6 @@ public class JSearchException extends RuntimeException {
 
 	@Override
 	public String toString() {
-		return reason + " " + data;
+		return String.format("reason : %s data: %s", reason, data);
 	}
 }

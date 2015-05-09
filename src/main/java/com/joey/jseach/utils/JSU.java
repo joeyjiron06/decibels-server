@@ -1,12 +1,23 @@
 package com.joey.jseach.utils;
 
 
+import com.google.gson.JsonArray;
+import com.joey.jseach.network.JsonSerializable;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+import retrofit.mime.TypedByteArray;
+import retrofit.mime.TypedInput;
+
 import java.util.Collection;
 
 /**
  * JSearch UTILITIES
  * */
 public class JSU {
+
+	private JSU() {
+		//dont allow instantiations of this object
+	}
 
 /* - S T R I N G S */
 
@@ -23,8 +34,7 @@ public class JSU {
 			return input.split(",");
 		}
 
-		//return empty list
-		return new String[]{};
+		return null;
 	}
 
 	/**
@@ -58,5 +68,53 @@ public class JSU {
 
 	public static boolean isNullOrEmpty(Collection<?> collection) {
 		return collection == null || collection.isEmpty();
+	}
+
+	public static JsonArray toJson(Collection<? extends JsonSerializable> list) {
+		if (list != null) {
+			JsonArray jsonArray = new JsonArray();
+			for (JsonSerializable jsonSerializable : list) {
+				jsonArray.add(jsonSerializable.toJson());
+			}
+			return jsonArray;
+		}
+		return null;
+	}
+
+/* - A P P  S P E C I F I C  U T I L S */
+
+	private static String toString(RetrofitError error) {
+		StringBuilder builder = new StringBuilder("RetrofitError : ");
+
+		if (error != null) {
+			Response response = error.getResponse();
+			if (response != null) {
+				builder.append(" url(")
+						.append(response.getUrl())
+						.append(")");
+
+				builder.append(" httpStatus(")
+						.append(response.getStatus())
+						.append(")");
+
+				builder.append(" reason(")
+						.append(response.getReason())
+						.append(")");
+
+				TypedInput input = response.getBody();
+				if (input != null) {
+					builder.append(" body(");
+					if (input instanceof TypedByteArray) {
+						TypedByteArray typedByteArray = (TypedByteArray) input;
+						builder.append(new String(typedByteArray.getBytes()));
+					} else {
+						builder.append(input.toString());
+					}
+					builder.append(")");
+				}
+			}
+		}
+
+		return builder.toString();
 	}
 }

@@ -14,7 +14,7 @@ import java.util.*;
 
 public interface MusicSearchEngine {
 
-	List<SearchType> SEARCH_TYPES_ALL = Arrays.asList(SearchType.values());
+	List<SearchType> SEARCH_TYPES_ALL = Collections.unmodifiableList(Arrays.asList(SearchType.values()));
 
 	/**
 	 * @param artist the artist to search for
