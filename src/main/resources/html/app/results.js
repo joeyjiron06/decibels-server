@@ -31,26 +31,26 @@
 		 * */
 
 		self.hasItems = function() {
-			return true;//self.hasArtists() || self.hasAlbums() || self.hasSongs();
+			return self.hasArtists() || self.hasAlbums() || self.hasSongs();
 		};
 
 		self.hasArtists = function() {
-			return !internals.isEmptyOrNull(self.artists);
+			return !JSU.isNullOrEmpty(self.artists);
 		};
 
 		self.hasAlbums = function() {
-			return !internals.isEmptyOrNull(self.albums);
+			return !JSU.isNullOrEmpty(self.albums);
 		};
 
 		self.hasSongs = function() {
-			return !internals.isEmptyOrNull(self.songs);
+			return !JSU.isNullOrEmpty(self.songs);
 		};
 
 		$scope.search = function() {
 			// GET QUERY FROM UI
 			var query = $scope.query;
 
-			if (!internals.isEmptyOrNull(query)) {
+			if (!JSU.isNullOrEmpty(query)) {
 
 				console.log('searching ' + $scope.query);
 
@@ -88,9 +88,6 @@
 					self.songs = songs;
 				});
 			},
-			isEmptyOrNull	: function(array) {
-				return array === null || array === undefined || array.length == 0;
-			},
 			getSearchTypes	: function() {
 				return JSU.combine(DecibelsService.TYPES.ARTIST, DecibelsService.TYPES.ALBUM, DecibelsService.TYPES.SONG);
 			}
@@ -101,27 +98,28 @@
 		return self;
 	}])
 	.service('DecibelsService', ['$http', function($http) {
-			var self		= this;
+			var self			= this;
 
-			var baseUrl		= 'http://localhost:8080';//TODO change to proper url
+			var baseUrl			= 'http://localhost:8080';//TODO change to proper url
 
-			var constants 	= {
-				SEARCH_ENDPOINT		: (baseUrl + '/search')
+			var constants		= {
+				SEARCH_ENDPOINT		: (baseUrl + '/search?query={0}')
 			};
 
-			self.TYPES		= {
-				ARTIST		: "artist",
-				ALBUM		: "album",
-				SONG		: "song"
+			//TODO move to it's own class singleto
+			self.TYPES			= {
+				ARTIST				: "artist",
+				ALBUM				: "album",
+				SONG				: "song"
 			};
 
-			var callbacks = {
-				success : function(data, callback) {
+			var callbacks		= {
+				success 			: function(data, callback) {
 					if (callback && callback.success) {
 						callback.success(data);
 					}
 				},
-				error : function(data, callback) {
+				error				: function(data, callback) {
 					if (callback && callback.error) {
 						callback.error(data);
 					}
@@ -132,16 +130,42 @@
 			 * Public
 			 */
 
-			self.search = function(query, type, callback) {
-				var url = constants.SEARCH_ENDPOINT + '?type=' + type + '&query=' + query;
+			self.search 		= function(query, type, callback) {
+				var url			= internals.getSearchUrl(query, type);
+
+				console.log(url + ' searchign url');
 				$http.get(url)
 					.success(function(data) {
-						//TODO convert data
-						callbacks.success(data, callback);
+						//TODO set parser
+						var parsedData = internals.parseServerResponse(data);
+						console.log('raw json', data);
+						callbacks.success(parsedData, callback);
 					}).error(function(data) {
 						//TODO convert data
 						callbacks.error(data, callback);
 					});
+			};
+
+			var internals		= {
+				getSearchUrl		: function(query, type) {
+					var url			= JSU.format(constants.SEARCH_ENDPOINT, query);
+					if (JSU.isNullOrEmpty(type)) {
+						url			+= '&type=' + type;
+					}
+					return url;
+				},
+				//TODO clean up and move this to a parser class.
+				parseServerResponse	: function(data) {
+					if (data) {
+						var result		= { };
+						result.artists	= Artist.parseArray(data.artists);
+						result.albums	= Album.parseArray(data.albums);
+						result.songs	= Song.parseArray(data.songs);
+						return result;
+					}
+
+					return null;
+				}
 			};
 
 			return self;

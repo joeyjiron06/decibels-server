@@ -100,6 +100,7 @@ A song object has the following fields:
 |artist|string|The name of the artist|
 |durationMs|integer|The duration of the song in milliseconds|
 |images|array of [image](#image) objects|An array of images for this album|
+|availabilites|array of [availability](#availability) objects| The availabilities of a song, meaning it's available on *Spotify, Rhapsody, Rdio, etc.*|
 
 
 
@@ -121,5 +122,5 @@ The service that the respective object is available on. For instance, "The Black
 |:------|:-----------|:-------------|
 |name|string|The name of the availability *(Spotify, Rhapsody, Youtube, etc)*.|
 |image|string|The url of the image for the availability|
-|deep_link|string|The url pointing to the service that the item is available on.|
+|deepLink|string|The url pointing to the service that the item is available on.|
 
