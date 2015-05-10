@@ -8,12 +8,14 @@ public class Song implements JsonSerializable {
 	private final String album;
 	private final String artist;
 	private final String image;
+	private final int durationMs;
 
-    public Song(String name, String album, String artist, String image) {
+    public Song(String name, String album, String artist, String image, int durationMs) {
 		this.name = name;
 		this.album = album;
 		this.artist = artist;
 		this.image = image;
+		this.durationMs = durationMs;
 	}
 
 	public String getName() {
@@ -68,6 +70,7 @@ public class Song implements JsonSerializable {
 		json.addProperty("album", album);
 		json.addProperty("artist", artist);
 		json.addProperty("image", image);
+		json.addProperty("durationMs", durationMs);
 		return json;
 	}
 }

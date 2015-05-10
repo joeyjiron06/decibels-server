@@ -2,6 +2,8 @@
  * results.js
  * */
 
+//TODO try requre.js
+
 (function(){
 	angular.module('decibels', [])
 	.directive('ngEnter', function () {
@@ -45,21 +47,31 @@
 		};
 
 		$scope.search = function() {
+			// GET QUERY FROM UI
 			var query = $scope.query;
+
 			if (!internals.isEmptyOrNull(query)) {
+
 				console.log('searching ' + $scope.query);
 
-				DecibelsService.search(query, 'artist', {
+				// GET TYPES TO SEARCH FOR
+				var searchTypes		= internals.getSearchTypes();
+
+				// QUERY THE SERVICE
+				DecibelsService.search(query, searchTypes, {
 					success : function(data) {
-						console.log('success!');
-						console.log(data.results);
-						internals.setData(data.results, null, null);
+						console.log('success!', data);
+						// SET THE DATA
+						internals.setData(data.artists, data.albums, data.songs);
 					},
 					error : function(data) {
-						console.log(data);
+						//TODO figure out proper error
+						console.log('error :(', data);
+						internals.setData(null, null, null);
 					}
 				});
 			} else {
+				//TODO show ui?
 				console.log('null or empty query');
 			}
 		};
@@ -69,15 +81,18 @@
 		 * */
 
 		var internals = {
-			setData : function(artists, albums, songs) {
+			setData			: function(artists, albums, songs) {
 				$scope.$applyAsync(function() {
 					self.artists = artists;
 					self.albums = albums;
 					self.songs = songs;
 				});
 			},
-			isEmptyOrNull : function(array) {
+			isEmptyOrNull	: function(array) {
 				return array === null || array === undefined || array.length == 0;
+			},
+			getSearchTypes	: function() {
+				return JSU.combine(DecibelsService.TYPES.ARTIST, DecibelsService.TYPES.ALBUM, DecibelsService.TYPES.SONG);
 			}
 		};
 
@@ -86,12 +101,18 @@
 		return self;
 	}])
 	.service('DecibelsService', ['$http', function($http) {
-			var self = this;
+			var self		= this;
 
-			var baseUrl = 'http://localhost:8080';//TODO change to proper url
+			var baseUrl		= 'http://localhost:8080';//TODO change to proper url
 
-			var constants = {
-				SEARCH_ENDPOINT : (baseUrl + '/search')
+			var constants 	= {
+				SEARCH_ENDPOINT		: (baseUrl + '/search')
+			};
+
+			self.TYPES		= {
+				ARTIST		: "artist",
+				ALBUM		: "album",
+				SONG		: "song"
 			};
 
 			var callbacks = {

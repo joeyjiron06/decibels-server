@@ -154,8 +154,12 @@ public class Spotify implements MusicQuerier {
 	private static class ArtistConverter implements Converter<SpotifyResult.Artist, AvailabilityWithData<Artist>> {
 		@Override
 		public AvailabilityWithData<Artist> convert(SpotifyResult.Artist spotifyArtist) {
-			Artist artist = new Artist(spotifyArtist.name, null);
-			Availibility availibility = new SpotifyAvailability("http://open.spotify.com/artist/"+spotifyArtist.id);
+			String image = null;
+			if (!JSU.isNullOrEmpty(spotifyArtist.images)) {
+				image = spotifyArtist.images.get(0).url;
+			}
+			Artist artist = new Artist(spotifyArtist.name, image);
+			Availibility availibility = new SpotifyAvailability(spotifyArtist.externalUrls.spotify);
 			return new AvailabilityWithData<>(artist, availibility);
 		}
 	};
@@ -167,7 +171,7 @@ public class Spotify implements MusicQuerier {
 			Availibility availibility = new SpotifyAvailability(input.externalUrls.spotify);
 
 			String imgUrl = null;
-			if (input.images != null && !input.images.isEmpty()) {
+			if (!JSU.isNullOrEmpty(input.images)) {
 				imgUrl = input.images.get(0).url;
 			}
 			Album data = new Album(input.name, imgUrl);
@@ -181,10 +185,11 @@ public class Spotify implements MusicQuerier {
 		public AvailabilityWithData<Song> convert(SpotifyResult.Track input) {
 			Availibility availibility = new SpotifyAvailability(input.externalUrls.spotify);
 			String artistName = null;
-			if (input.artists != null && !input.artists.isEmpty()) {
+			if (!JSU.isNullOrEmpty(input.artists)) {
 				artistName = input.artists.get(0).name;
 			}
-			Song song = new Song(input.name, input.album.name, artistName, null);
+
+			Song song = new Song(input.name, input.album.name, artistName, null, input.durationMs);
 			return new AvailabilityWithData<>(song, availibility);
 		}
 	};

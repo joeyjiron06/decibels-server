@@ -4,6 +4,7 @@
 	<link rel="stylesheet" type="text/css" href="css/results.css">
     <script type="application/javascript" src="app/angular.min.js"></script>
     <script type="application/javascript" src="app/jquery.min.js"></script>
+    <script type="application/javascript" src="app/JSU.js"></script>
     <script type="application/javascript" src="app/results.js"></script>
 	<title>Decibels</title>
 </head>
@@ -51,7 +52,7 @@
                 <ul>
                     <li ng-repeat="album in results.albums">
                         <img src={{album.image}} width="144" height="144"/>
-                        <p class="results-title">{{album.album}} </p>
+                        <p class="results-title">{{album.name}} </p>
                         <p class="results-sub-title">{{album.artist}} </p>
                     </li>
                 </ul>
@@ -72,7 +73,7 @@
                         <td>{{song.name}}</td>
                         <td>{{song.artist}}</td>
                         <td>{{song.album}}</td>
-                        <td>{{song.time}}</td>
+                        <td>{{song.durationMs}}</td>
                     </tr>
                 </table>
             </div>

@@ -27,6 +27,11 @@ public class SpotifyResult {
 		public int popularity;//0-100
 		public String href;//A link to the Web API endpoint providing full details of the artist.
 		public List<String> genres;
+
+		@SerializedName("external_urls")
+		public ExternalUrls externalUrls;
+
+		public List<Image> images;
 	}
 
 
@@ -55,7 +60,6 @@ public class SpotifyResult {
 		//album
 		//artist
 		public int discNumber;
-		public int durationMs;
 		public boolean explicit;
 		public String href;//deep link url
 		public String id;
@@ -66,6 +70,9 @@ public class SpotifyResult {
 		public int trackNumber;
 		public Album album;
 		public ArrayList<Artist> artists;
+
+		@SerializedName("duration_ms")
+		public int durationMs;
 	}
 
 /* - OTHER */

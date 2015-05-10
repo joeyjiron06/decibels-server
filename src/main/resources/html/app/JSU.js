@@ -5,6 +5,17 @@
 
 var JSU = JSU || {};
 
-JSU.buildUrl = function(url, params) {
-	//TODO build url
-};
+JSU.combine				= function() {
+	var result		= "";
+	var argSize		= arguments.length;
+	var arg;
+	for (var i=0; i < argSize; ++i) {
+		arg = arguments[i];
+		result += arg;
+		if ((i+1) < argSize) {
+			result += ",";
+		}
+	}
+	return result;
+}
+
