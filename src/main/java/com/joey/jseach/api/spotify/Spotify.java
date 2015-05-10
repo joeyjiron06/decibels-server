@@ -1,5 +1,6 @@
 package com.joey.jseach.api.spotify;
 
+import com.joey.jseach.core.Image;
 import com.joey.jseach.search.SearchType;
 import com.joey.jseach.search.interfaces.MusicQuerierSearchResult;
 import com.joey.jseach.utils.Logger;
@@ -72,9 +73,10 @@ public class Spotify implements MusicQuerier {
 
 	@Override
 	public MusicQuerierSearchResult search(String query, List<SearchType> searchTypes) throws JSearchException {
-		//convert app enum types to spotify api types
-		String types = getSearchTypesString(searchTypes);
+		// CONVERT APP ENUM TYPES TO SPOTIFY API TYPES
+		String types = convertToSpotifyType(searchTypes);
 
+		// QUERY SPOTIFY API
 		SpotifyResult spotifyResult = spotifyAPI.search(query, types);
 
 		if (spotifyResult != null) {
@@ -117,7 +119,7 @@ public class Spotify implements MusicQuerier {
 		return null;
 	}
 
-	private static String getSearchTypesString(List<SearchType> searchTypes) {
+	private static String convertToSpotifyType(List<SearchType> searchTypes) {
 		List<String> result = new ArrayList<>();
 
 		for (SearchType searchType : searchTypes) {
@@ -151,15 +153,35 @@ public class Spotify implements MusicQuerier {
 
 /* - CONVERTERS */
 
+	private static List<Image>  extractImages(List<SpotifyResult.Image> images) {
+		List<Image> result = null;
+
+		if (!JSU.isNullOrEmpty(images)) {
+			result = new ArrayList<>();
+			for (SpotifyResult.Image image: images) {
+				result.add(new Image(image.width, image.height, image.url));
+			}
+		}
+
+		return result;
+	}
+
 	private static class ArtistConverter implements Converter<SpotifyResult.Artist, AvailabilityWithData<Artist>> {
 		@Override
 		public AvailabilityWithData<Artist> convert(SpotifyResult.Artist spotifyArtist) {
-			String image = null;
-			if (!JSU.isNullOrEmpty(spotifyArtist.images)) {
-				image = spotifyArtist.images.get(0).url;
-			}
-			Artist artist = new Artist(spotifyArtist.name, image);
+
+			// CREATE ARTIST
+			Artist artist = new Artist(spotifyArtist.name);
+
+			// GET AVAILABILITY
 			Availibility availibility = new SpotifyAvailability(spotifyArtist.externalUrls.spotify);
+
+			// GET IMAGES
+			List<Image> images = extractImages(spotifyArtist.images);
+			if (!JSU.isNullOrEmpty(images)) {
+				artist.addImages(images);
+			}
+
 			return new AvailabilityWithData<>(artist, availibility);
 		}
 	};
@@ -167,29 +189,55 @@ public class Spotify implements MusicQuerier {
 	private static class AlbumConverter implements Converter<SpotifyResult.Album, AvailabilityWithData<Album>> {
 
 		@Override
-		public AvailabilityWithData<Album> convert(SpotifyResult.Album input) {
-			Availibility availibility = new SpotifyAvailability(input.externalUrls.spotify);
+		public AvailabilityWithData<Album> convert(SpotifyResult.Album spotifyAlbum) {
 
-			String imgUrl = null;
-			if (!JSU.isNullOrEmpty(input.images)) {
-				imgUrl = input.images.get(0).url;
+			// CREATE ALBUM
+			Album album = new Album(spotifyAlbum.name);
+
+			// GET AVAILABILITY
+			Availibility availibility = new SpotifyAvailability(spotifyAlbum.externalUrls.spotify);
+
+			// GET IMAGES
+			List<Image> images = extractImages(spotifyAlbum.images);
+			if (!JSU.isNullOrEmpty(images)) {
+				album.addImages(images);
 			}
-			Album data = new Album(input.name, imgUrl);
 
-			return new AvailabilityWithData<>(data, availibility);
+			return new AvailabilityWithData<>(album, availibility);
 		}
 	};
 
 	private static class SongConverter implements Converter<SpotifyResult.Track, AvailabilityWithData<Song>> {
 		@Override
-		public AvailabilityWithData<Song> convert(SpotifyResult.Track input) {
-			Availibility availibility = new SpotifyAvailability(input.externalUrls.spotify);
-			String artistName = null;
-			if (!JSU.isNullOrEmpty(input.artists)) {
-				artistName = input.artists.get(0).name;
+		public AvailabilityWithData<Song> convert(SpotifyResult.Track spotifySong) {
+
+			// CREATE SONG
+			Song song = new Song(spotifySong.name);
+
+			// GET AVAILABILITY
+			Availibility availibility = new SpotifyAvailability(spotifySong.externalUrls.spotify);
+
+			// GET ARTIST NAME
+			if (!JSU.isNullOrEmpty(spotifySong.artists)) {
+				SpotifyResult.Artist spotifyArtist = spotifySong.artists.get(0);
+				song.setArtist(spotifyArtist.name);
 			}
 
-			Song song = new Song(input.name, input.album.name, artistName, null, input.durationMs);
+			// GET ALBUM NAME
+			if (spotifySong.album != null) {
+				SpotifyResult.Album spotifyAlbum = spotifySong.album;
+				song.setAlbum(spotifyAlbum.name);
+
+				// GET IMAGES FROM ALBUM
+				List<Image> images = extractImages(spotifyAlbum.images);
+				if (!JSU.isNullOrEmpty(images)) {
+					song.addImages(images);
+				}
+			}
+
+			// GET DURATION
+			song.setDurationMs(spotifySong.durationMs);
+
 			return new AvailabilityWithData<>(song, availibility);
 		}
 	};

@@ -16,8 +16,10 @@ public class Artist implements JsonSerializable {
 		this.images = new ArrayList<>();
     }
 
-	public void addImage(Image image) {
-		images.add(image);
+	public void addImages(List<Image> images) {
+		for (Image image :  images) {
+			this.images.add(image);
+		}
 	}
 
 	@Override

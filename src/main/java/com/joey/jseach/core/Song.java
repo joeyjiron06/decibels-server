@@ -19,8 +19,22 @@ public class Song implements JsonSerializable {
 		this.images = new ArrayList<>();
 	}
 
-	public void addImage(Image image) {
-		images.add(image);
+	public void addImages(List<Image> images) {
+		for (Image image : images) {
+			this.images.add(image);
+		}
+	}
+
+	public void setArtist(String artist) {
+		this.artist = artist;
+	}
+
+	public void setAlbum(String album) {
+		this.album = album;
+	}
+
+	public void setDurationMs(int durationMs) {
+		this.durationMs = durationMs;
 	}
 
 	@Override

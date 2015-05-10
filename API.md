@@ -85,8 +85,8 @@ An album object has the following fields:
 | key   | value type |  description |
 |:------|:-----------|:-------------|
 |name|string|The name of the album|
-|artist|string|The name of the artist|
-|images|array of [image](#image) objects|An array of images for this album|
+|artist *(optional)*|string|The name of the artist|
+|images *(optional)*|array of [image](#image) objects|An array of images for this album|
 |availabilites|array of [availability](#availability) objects| The availabilities of an album, meaning it's available on *Spotify, Rhapsody, Rdio, etc.*|
 
 ##Song
