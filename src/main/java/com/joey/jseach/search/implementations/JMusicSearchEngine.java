@@ -131,6 +131,7 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 				}
 
 				//if availibility isnt in the list then add it
+				//TODO is this necessary?
 				if (!contains(availibilities, availibility)) {
 					availibilities.add(availibility);
 				}

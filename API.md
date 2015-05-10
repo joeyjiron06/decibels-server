@@ -98,6 +98,7 @@ A song object has the following fields:
 |name|string|The name of the song|
 |album|string|The name of the album|
 |artist|string|The name of the artist|
+|durationMs|integer|The duration of the song in milliseconds|
 |images|array of [image](#image) objects|An array of images for this album|
 
 

@@ -2,6 +2,8 @@ package com.joey.jseach.utils;
 
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.joey.jseach.network.JsonSerializable;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -41,14 +43,14 @@ public class JSU {
 	 * @param collection the collection to combine
 	 * @param separator the separator to use for the combining
 	 * */
-	public static String combine(Collection<String> collection, String separator) {
+	public static String combine(Collection<?> collection, String separator) {
 		if (collection != null) {
 
 			StringBuilder stringBuilder = new StringBuilder();
 
 			int i = 0;
 			int size = collection.size();
-			for (String string : collection) {
+			for (Object string : collection) {
 				stringBuilder.append(string);
 
 				if ((i+1) < size) {
@@ -116,5 +118,23 @@ public class JSU {
 		}
 
 		return builder.toString();
+	}
+
+	public static void safeAdd(JsonObject json, String key, String value) {
+		if (!JSU.isNullOrEmpty(value)) {
+			json.addProperty(key, value);
+		}
+	}
+
+	public static void safeAdd(JsonObject json, String key, JsonElement value) {
+		if (value != null) {
+			json.add(key, value);
+		}
+	}
+
+	public static void safeAddPositive(JsonObject json, String key, int value) {
+		if (value > 0) {
+			json.addProperty(key, value);
+		}
 	}
 }
