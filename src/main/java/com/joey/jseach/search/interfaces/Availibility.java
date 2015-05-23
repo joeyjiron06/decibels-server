@@ -12,7 +12,7 @@ public interface Availibility extends JsonSerializable {
 	default JsonObject toJson() {
 		JsonObject json = new JsonObject();
 		json.addProperty("name", getName());
-		json.addProperty("deep_link", getDeepLink());
+		json.addProperty("deepLink", getDeepLink());
 		json.addProperty("image", getIcon());
 		return json;
 	}

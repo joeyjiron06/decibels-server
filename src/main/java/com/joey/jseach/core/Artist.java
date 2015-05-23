@@ -2,24 +2,25 @@ package com.joey.jseach.core;
 
 import com.google.gson.JsonObject;
 import com.joey.jseach.network.JsonSerializable;
+import com.joey.jseach.utils.JSU;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Artist implements JsonSerializable {
-    private final String name;
-	private final String img;
+	private final String name;
+	private final List<Image> images;
 
-    public Artist(String name, String img) {
-        this.name = name;
-	    this.img = img;
+    public Artist(String name) {
+		this.name = name;
+		this.images = new ArrayList<>();
     }
 
-    public String getName() {
-        return name;
-    }
-
-	public String getImg() {
-		return img;
+	public void addImages(List<Image> images) {
+		for (Image image :  images) {
+			this.images.add(image);
+		}
 	}
-
 
 	@Override
 	public int hashCode() {
@@ -44,8 +45,8 @@ public class Artist implements JsonSerializable {
 	@Override
 	public JsonObject toJson() {
 		JsonObject json = new JsonObject();
-		json.addProperty("name", name);
-		json.addProperty("image", img);
+		JSU.safeAdd(json, "name", name);
+		JSU.safeAdd(json, "images", JSU.toJson(images));
 		return json;
 	}
 }

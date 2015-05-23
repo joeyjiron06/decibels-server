@@ -1,19 +1,14 @@
 package com.joey.jseach;
 
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.joey.jseach.core.Album;
-import com.joey.jseach.core.Artist;
-import com.joey.jseach.core.Song;
-import com.joey.jseach.network.JsonSerializable;
-import com.joey.jseach.search.AvailabilitiesList;
+import com.joey.jseach.search.JSearchException;
 import com.joey.jseach.search.SearchType;
 import com.joey.jseach.search.implementations.JMusicSearchEngine;
 import com.joey.jseach.search.interfaces.MusicSearchEngine;
-import com.joey.jseach.utils.JsonUtils;
+import com.joey.jseach.utils.JSU;
 
-import java.util.List;
+import java.util.*;
 
 import spark.QueryParamsMap;
 
@@ -70,50 +65,71 @@ public class App {
 		return musicSearchEngine;
 	}
 
-
+/* - M A I N */
 
 	public static void main(String[] args) {
-		final App app = App.INSTANCE;
+		final MusicSearchEngine SearchEngine = App.getInstance().getSearchEngine();
 
 		port(8080);
 
 
 		get("/search", (request, response) -> {
 			QueryParamsMap params = request.queryMap();
-			String type = params.get("type").value();
+			String types = params.get("type").value();
 			String query = params.get("query").value();
 
-			SearchType searchType = SearchType.fromApiValue(type);
-
-			if (searchType == null || query == null) {
-				halt(400, "Invalid request " + request.queryString());
+			//check for query
+			if (query == null) {
+				halt(400, "Invalid request. You must specify a 'query' parameter.");
 			}
 
+			List<SearchType> searchTypes = new ArrayList<>();
 
-			JsonArray resultsArray = null;
+			if (JSU.isNullOrEmpty(types)) {
+				//default to all search types
+				searchTypes.addAll(Arrays.asList(SearchType.values()));
+			} else {
+				//split types and add to set
+				String[] typesList = JSU.safeSplit(types);
+				List<String> badTypes = null;
 
-			switch (searchType) {
-				case Artist:
-					List<AvailabilitiesList<Artist>> artists = app.getSearchEngine().searchArtist(query);
-					resultsArray = JsonUtils.toJson(artists);
-					break;
+				for (String typeItem : typesList) {
+					SearchType searchType = SearchType.fromApiValue(typeItem);
+					if (searchType != null) {
+						searchTypes.add(searchType);
+					} else {
+						//user entered a bad type. add it to the list
+						if (badTypes == null) {
+							badTypes = new ArrayList<>();
+						}
 
-				case Album:
-					List<AvailabilitiesList<Album>> albums = app.getSearchEngine().searchAlbum(query);
-					resultsArray = JsonUtils.toJson(albums);
-					break;
+						if (!badTypes.contains(typeItem)) {
+							badTypes.add(typeItem);
+						}
+					}
+				}
 
-				case Song:
-					List<AvailabilitiesList<Song>> songs = app.getSearchEngine().searchSong(query);
-					resultsArray = JsonUtils.toJson(songs);
-					break;
+				if (!JSU.isNullOrEmpty(badTypes)) {
+					//user entered bad types. return a bad request
+					halt(400, "Invalid request. Bad type(s) " + JSU.combine(badTypes, ","));
+				}
 			}
 
-			if (resultsArray != null) {
+			try {
+				JsonObject json;
+
+				if (!searchTypes.isEmpty()) {
+					//query the search engine
+					json = SearchEngine.search(query, searchTypes).toJson();
+				} else {
+					//empty json object
+					json = new JsonObject();
+				}
+
 				response.type("application/json");
-				JsonObject result = new JsonObject();
-				result.add("results", resultsArray);
-				return result;
+				return json;
+			} catch (JSearchException e) {
+				//TODO determing what happens here
 			}
 
 

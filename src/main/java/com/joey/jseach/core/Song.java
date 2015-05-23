@@ -2,42 +2,49 @@ package com.joey.jseach.core;
 
 import com.google.gson.JsonObject;
 import com.joey.jseach.network.JsonSerializable;
+import com.joey.jseach.utils.JSU;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Song implements JsonSerializable {
 	private final String name;
-	private final String album;
-	private final String artist;
-	private final String image;
+	private final List<Image> images;
+	private String album;
+	private String artist;
+	private int durationMs;
 
-    public Song(String name, String album, String artist, String image) {
+    public Song(String name) {
 		this.name = name;
-		this.album = album;
+		this.images = new ArrayList<>();
+	}
+
+	public void addImages(List<Image> images) {
+		for (Image image : images) {
+			this.images.add(image);
+		}
+	}
+
+	public void setArtist(String artist) {
 		this.artist = artist;
-		this.image = image;
 	}
 
-	public String getName() {
-        return name;
-    }
-
-	public String getImage() {
-		return image;
+	public void setAlbum(String album) {
+		this.album = album;
 	}
 
-	public String getAlbum() {
-		return album;
-	}
-
-	public String getArtist() {
-		return artist;
+	public void setDurationMs(int durationMs) {
+		this.durationMs = durationMs;
 	}
 
 	@Override
 	public String toString() {
-		return "name " + name +
-				" album " + album +
-				" artist " + artist +
-				" image " + image;
+		return String.format("(name:%s, album:%s, artist:%s, durationMs:%d, images:[%s])",
+				name,
+				album,
+				artist,
+				durationMs,
+				JSU.combine(images, ","));
 	}
 
 	@Override
@@ -61,13 +68,15 @@ public class Song implements JsonSerializable {
 		return false;
 	}
 
+
 	@Override
 	public JsonObject toJson() {
 		JsonObject json = new JsonObject();
-		json.addProperty("name", name);
-		json.addProperty("album", album);
-		json.addProperty("artist", artist);
-		json.addProperty("image", image);
+		JSU.safeAdd(json, "name", name);
+		JSU.safeAdd(json, "album", album);
+		JSU.safeAdd(json, "artist", artist);
+		JSU.safeAdd(json, "images", JSU.toJson(images));
+		JSU.safeAddPositive(json, "durationMs", durationMs);
 		return json;
 	}
 }

@@ -8,14 +8,9 @@ import com.joey.jseach.search.AvailabilityWithData;
 import com.joey.jseach.search.JSearchException;
 import com.joey.jseach.search.AvailabilitiesList;
 import com.joey.jseach.search.SearchType;
-import com.joey.jseach.search.interfaces.Availibility;
-import com.joey.jseach.search.interfaces.MusicQuerier;
-import com.joey.jseach.search.interfaces.MusicSearchEngine;
+import com.joey.jseach.search.interfaces.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 
@@ -23,123 +18,149 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 
 	private final List<MusicQuerier> musicQueriers;
 
+	private static final List<SearchType> SEARCH_TYPE_ARTIST = Collections.singletonList(SearchType.Artist);
+	private static final List<SearchType> SEARCH_TYPE_ALBUM = Collections.singletonList(SearchType.Album);
+	private static final List<SearchType> SEARCH_TYPE_SONG = Collections.singletonList(SearchType.Song);
+
 	public JMusicSearchEngine() {
 		musicQueriers = new ArrayList<>();
 		musicQueriers.add(new Spotify());
 	}
 
+/* - MusicSearchEngine INTERFACE */
 
 	@Override
 	public List<AvailabilitiesList<Artist>> searchArtist(String artist) throws JSearchException {
-		return search(artist, SearchType.Artist);
+		MusicSearchEngineResult result =  search(artist, SEARCH_TYPE_ARTIST);
+
+		if (result != null) {
+			return result.getArtists();
+		}
+
+		return null;
 	}
 
 	@Override
 	public List<AvailabilitiesList<Album>> searchAlbum(String album) throws JSearchException {
-		return search(album, SearchType.Album);
+		MusicSearchEngineResult result =  search(album, SEARCH_TYPE_ALBUM);
+
+		if (result != null) {
+			return result.getAlbums();
+		}
+
+		return null;
 	}
 
 	@Override
 	public List<AvailabilitiesList<Song>> searchSong(String song) throws JSearchException {
-		return search(song, SearchType.Song);
-	}
+		MusicSearchEngineResult result =  search(song, SEARCH_TYPE_SONG);
 
-	private <T> List<AvailabilitiesList<T>> search(String query, SearchType searchType) throws JSearchException {
-
-
-		//Ask all queriers to query for the input
-
-		CountDownLatch countDownLatch = new CountDownLatch(musicQueriers.size());
-		Map<T, List<Availibility>> map = new HashMap<>();
-
-		for (MusicQuerier musicQuerier : musicQueriers) {
-			new SearchThread<T>(searchType, countDownLatch, query, musicQuerier, map).start();
+		if (result != null) {
+			return result.getSongs();
 		}
 
+		return null;
+	}
+
+	@Override
+	public MusicSearchEngineResult search(String query, List<SearchType> searchTypes) throws JSearchException {
+		Map<Artist, List<Availibility>> artistsMap = new HashMap<>();
+		Map<Album, List<Availibility>> albumsMap = new HashMap<>();
+		Map<Song, List<Availibility>> songsMap = new HashMap<>();
+
+		CountDownLatch countDownLatch = new CountDownLatch(musicQueriers.size());
+
+		//query using all music queries and add them to a master list
+		for (MusicQuerier musicQuerier : musicQueriers) {
+			new Thread() {
+				@Override
+				public void run() {
+					MusicQuerierSearchResult searchResult = musicQuerier.search(query, searchTypes);
+
+					if (searchResult != null) {
+						List<AvailabilityWithData<Artist>> artists = searchResult.getArtists();
+						List<AvailabilityWithData<Album>> albums = searchResult.getAlbums();
+						List<AvailabilityWithData<Song>> songs = searchResult.getSongs();
+
+						synchronized (artistsMap) {
+							populateMap(artistsMap, artists);
+						}
+
+						synchronized (albumsMap) {
+							populateMap(albumsMap, albums);
+						}
+
+						synchronized (songsMap) {
+							populateMap(songsMap, songs);
+						}
+					}
+
+					synchronized (countDownLatch) {
+						countDownLatch.countDown();
+					}
+				}
+			}.start();
+		}
+
+		//wait for all threads to finish
 		try {
-			//wait for all queries to finish
 			countDownLatch.await();
 		} catch (InterruptedException e) {
 			throw new JSearchException(JSearchException.Reason.Unexpected, "no successful search results");
 		}
 
+		List<AvailabilitiesList<Artist>> artistsList = convertMap(artistsMap);
+		List<AvailabilitiesList<Album>> albumsList = convertMap(albumsMap);
+		List<AvailabilitiesList<Song>> songsList = convertMap(songsMap);
 
-		//convert map to returnable list of data
+		return new MusicSearchEngineResult(artistsList, albumsList, songsList);
+	}
 
+/* - UTILITY FUNCTIONS */
+
+	private static <T> void populateMap(Map<T, List<Availibility>> dataMap, List<AvailabilityWithData<T>> dataList) {
+		if (dataList != null) {
+			for (AvailabilityWithData<T> availabilityWithData : dataList) {
+				T data = availabilityWithData.getData();
+				Availibility availibility = availabilityWithData.getAvailibility();
+				//look for artist in map
+				List<Availibility> availibilities = dataMap.get(data);
+				if (availibilities == null) {
+					availibilities = new ArrayList<>();
+					dataMap.put(data, availibilities);
+				}
+
+				//if availibility isnt in the list then add it
+				//TODO is this necessary?
+				if (!contains(availibilities, availibility)) {
+					availibilities.add(availibility);
+				}
+
+			}
+		}
+	}
+
+	private static <T> List<AvailabilitiesList<T>> convertMap(Map<T, List<Availibility>> dataMap) {
 		List<AvailabilitiesList<T>> results = new ArrayList<>();
 
-		for (T data : map.keySet()) {
-			List<Availibility> availibilities = map.get(data);
+		for (T data : dataMap.keySet()) {
+			List<Availibility> availibilities = dataMap.get(data);
 			results.add(new AvailabilitiesList<>(data, availibilities));
 		}
 
 		return results;
 	}
 
-	private static <T> void addToMap(Map<T, List<Availibility>> availabilitiestMap, List<AvailabilityWithData<T>> results) {
-	}
-
-	/**
-	 * Asks the music querier for the appropriate data given the search type and other parameters.
-	 *
-	 * */
-	private static class SearchThread<T> extends Thread {
-
-		private final CountDownLatch latch;
-		private final String query;
-		private final SearchType type;
-		private final MusicQuerier querier;
-		private final Map<T, List<Availibility>> map;
-
-		private SearchThread(SearchType searchType, CountDownLatch latch, String query, MusicQuerier querier, Map<T, List<Availibility>> map) {
-			this.type = searchType;
-			this.latch = latch;
-			this.query = query;
-			this.querier = querier;
-			this.map = map;
-		}
-
-		@Override
-		public void run() {
-			try {
-				List<AvailabilityWithData<T>> results = type.apply(query, querier);
-
-
-				//add results to the map
-				synchronized (map) {
-					for (AvailabilityWithData<T> result : results) {
-						Availibility availibility = result.getAvailibility();
-						T data = result.getData();
-
-						List<Availibility> availibilityList = map.get(data);
-
-						if (availibilityList == null) {
-							availibilityList = new ArrayList<>();
-							map.put(data, availibilityList);
-						}
-
-						boolean containsAvailability = false;
-
-						for (Availibility a : availibilityList) {
-							if (availibility.getName().equals(a.getName())) {
-								containsAvailability = true;
-								break;
-							}
-						}
-
-						if (!containsAvailability) {
-							availibilityList.add(availibility);
-						}
-					}
+	private static boolean contains(List<Availibility> availibilities, Availibility availibility) {
+		String name = availibility.getName();
+		if (name != null) {
+			for (Availibility a : availibilities) {
+				if (name.equals(a.getName())) {
+					return true;
 				}
-
-			} catch (JSearchException exception) {
-				//nothing
-			}
-
-			synchronized (latch) {
-				latch.countDown();
 			}
 		}
+
+		return false;
 	}
 }

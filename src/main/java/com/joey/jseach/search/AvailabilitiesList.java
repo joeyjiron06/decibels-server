@@ -3,7 +3,7 @@ package com.joey.jseach.search;
 import com.google.gson.JsonObject;
 import com.joey.jseach.network.JsonSerializable;
 import com.joey.jseach.search.interfaces.Availibility;
-import com.joey.jseach.utils.JsonUtils;
+import com.joey.jseach.utils.JSU;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class AvailabilitiesList<T> implements JsonSerializable {
 		if (data instanceof JsonSerializable) {
 			JsonSerializable jsonSerializable = (JsonSerializable) data;
 			JsonObject json = jsonSerializable.toJson();
-			json.add("availabilites", JsonUtils.toJson(availibilityList));
+			json.add("availabilites", JSU.toJson(availibilityList));
 			return json;
 		}
 		return null;

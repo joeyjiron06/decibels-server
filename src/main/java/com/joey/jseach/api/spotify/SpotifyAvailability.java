@@ -20,7 +20,6 @@ class SpotifyAvailability implements Availibility {
 
 	@Override
 	public String getIcon() {
-		//TODO return spotify image url
-		return null;
+		return "https://flic.kr/p/rK6o4N";
 	}
 }
