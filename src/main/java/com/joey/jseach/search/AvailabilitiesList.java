@@ -43,7 +43,7 @@ public class AvailabilitiesList<T> implements JsonSerializable {
 		if (data instanceof JsonSerializable) {
 			JsonSerializable jsonSerializable = (JsonSerializable) data;
 			JsonObject json = jsonSerializable.toJson();
-			json.add("availabilites", JSU.toJson(availibilityList));
+			json.add("availabilities", JSU.toJson(availibilityList));
 			return json;
 		}
 		return null;

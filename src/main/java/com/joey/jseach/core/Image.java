@@ -15,6 +15,10 @@ public class Image implements JsonSerializable {
 		this.url = url;
 	}
 
+	public int getArea() {
+		return width * height;
+	};
+
 	@Override
 	public String toString() {
 		return String.format("(width:%d, height:%d, url:%s)", width, height, url);

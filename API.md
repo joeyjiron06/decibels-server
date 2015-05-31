@@ -74,7 +74,7 @@ An artist object has the following fields:
 | key   | value type |  description |
 |:-----|:------------|:-------------|
 |name|	string|The name of the artist|
-|imges|array of [image](#image) objects| The images associated with this artist|
+|imges| an [Images](#images) object| The images associated with this artist|
 |availabilites|array of [availability](#availability) objects| The availabilities of an artist, meaning it's available on *Spotify, Rhapsody, Rdio, etc.*|
 
 
@@ -86,7 +86,7 @@ An album object has the following fields:
 |:------|:-----------|:-------------|
 |name|string|The name of the album|
 |artist *(optional)*|string|The name of the artist|
-|images *(optional)*|array of [image](#image) objects|An array of images for this album|
+|images *(optional)*|an [Images](#images) object|The images associated with this album|
 |availabilites|array of [availability](#availability) objects| The availabilities of an album, meaning it's available on *Spotify, Rhapsody, Rdio, etc.*|
 
 ##Song
@@ -99,20 +99,31 @@ A song object has the following fields:
 |album|string|The name of the album|
 |artist|string|The name of the artist|
 |durationMs|integer|The duration of the song in milliseconds|
-|images|array of [image](#image) objects|An array of images for this album|
+|images|an [Images](#images) object|The images associated with this album|
 |availabilites|array of [availability](#availability) objects| The availabilities of a song, meaning it's available on *Spotify, Rhapsody, Rdio, etc.*|
 
 
 
-##<a name="image"></a> Image
+##<a name="images"></a> Images
 
 An image object has the following fields:
 
 | key   | value type |  description |
 |:------|:-----------|:-------------|
+|small| array of [Image](#image) objects | small images < 100 x 100 |
+|medium| array of [Image](#image) objects | medium images < 300 x 300 |
+|large| array of [Image](#image) objects | large images > 300 x 300 |
+
+
+
+
+##<a name="image"></a> Image
+| key   | value type |  description |
+|:------|:-----------|:-------------|
 |width|integer|The width of the image|
 |height|integer|The height of the image|
 |url|string|The image url|
+
 
 ##<a name="availability"></a> Availability
 

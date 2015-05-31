@@ -9,20 +9,18 @@ import java.util.List;
 
 public class Song implements JsonSerializable {
 	private final String name;
-	private final List<Image> images;
+	private final Images images;
 	private String album;
 	private String artist;
 	private int durationMs;
 
     public Song(String name) {
 		this.name = name;
-		this.images = new ArrayList<>();
+		this.images = new Images();
 	}
 
 	public void addImages(List<Image> images) {
-		for (Image image : images) {
-			this.images.add(image);
-		}
+		this.images.addImages(images);
 	}
 
 	public void setArtist(String artist) {
@@ -44,7 +42,7 @@ public class Song implements JsonSerializable {
 				album,
 				artist,
 				durationMs,
-				JSU.combine(images, ","));
+				images.toString());
 	}
 
 	@Override
@@ -75,7 +73,7 @@ public class Song implements JsonSerializable {
 		JSU.safeAdd(json, "name", name);
 		JSU.safeAdd(json, "album", album);
 		JSU.safeAdd(json, "artist", artist);
-		JSU.safeAdd(json, "images", JSU.toJson(images));
+		JSU.safeAdd(json, "images", images.toJson());
 		JSU.safeAddPositive(json, "durationMs", durationMs);
 		return json;
 	}
