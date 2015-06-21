@@ -11,8 +11,6 @@ import com.joey.jseach.api.spotify.Spotify;
 import com.joey.jseach.core.Album;
 import com.joey.jseach.core.Artist;
 import com.joey.jseach.core.Song;
-import com.joey.jseach.search.AvailabilitiesList;
-import com.joey.jseach.search.AvailabilityWithData;
 import com.joey.jseach.search.JSearchException;
 
 import org.junit.Test;
@@ -43,7 +41,7 @@ public class SearchTests {
 
 	@Test
 	public void searchArtists() {
-		List<AvailabilitiesList<Artist>> artistResults = null;
+		List<Artist> artistResults = null;
 		try {
 			artistResults = SearchEngine.searchArtist("allman brothers");
 
@@ -56,7 +54,7 @@ public class SearchTests {
 
 	@Test
 	public void searchSong() {
-		List<AvailabilitiesList<Song>> songResults = null;
+		List<Song> songResults = null;
 		try {
 			songResults = SearchEngine.searchSong("call me");
 		} catch (JSearchException e) {
@@ -68,7 +66,7 @@ public class SearchTests {
 
 	@Test
 	public void searchAlbum() {
-		List<AvailabilitiesList<Album>> albums = null;
+		List<Album> albums = null;
 
 		try {
 			albums = SearchEngine.searchAlbum("mob rules");
@@ -86,9 +84,9 @@ public class SearchTests {
 		assert(searchEngineResult != null);
 
 		if (searchEngineResult != null) {
-			List<AvailabilitiesList<Artist>> artists = searchEngineResult.getArtists();
-			List<AvailabilitiesList<Album>> albums = searchEngineResult.getAlbums();
-			List<AvailabilitiesList<Song>> songs = searchEngineResult.getSongs();
+			List<Artist> artists = searchEngineResult.getArtists();
+			List<Album> albums = searchEngineResult.getAlbums();
+			List<Song> songs = searchEngineResult.getSongs();
 
 			assert(!JSU.isNullOrEmpty(artists));
 			assert(!JSU.isNullOrEmpty(albums));
@@ -101,7 +99,7 @@ public class SearchTests {
 		Spotify spotify = new Spotify();
 
 		try {
-			List<AvailabilityWithData<Album>> results = spotify.searchAlbum("mob rules");
+			List<Album> results = spotify.searchAlbum("mob rules");
 
 			assert(!JSU.isNullOrEmpty(results));
 		} catch (JSearchException e) {

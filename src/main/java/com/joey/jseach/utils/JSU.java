@@ -10,7 +10,10 @@ import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
 import retrofit.mime.TypedInput;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * JSearch UTILITIES
@@ -80,6 +83,14 @@ public class JSU {
 			}
 			return jsonArray;
 		}
+		return null;
+	}
+
+	public static <K, V> List<V> mapAsList(Map<K, V> map) {
+		if ( map != null ) {
+			return new ArrayList<>( map.values() );
+		}
+
 		return null;
 	}
 

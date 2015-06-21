@@ -1,8 +1,8 @@
 package com.joey.jseach.api.groovshark;
 
-import com.joey.jseach.search.interfaces.Availibility;
+import com.joey.jseach.search.interfaces.Availability;
 
-class GrooveSharkAvailability implements Availibility {
+class GrooveSharkAvailability implements Availability {
 	private final String deeplink;
 
 	GrooveSharkAvailability(String deeplink) {

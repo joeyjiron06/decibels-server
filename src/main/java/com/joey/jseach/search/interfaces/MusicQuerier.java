@@ -3,12 +3,10 @@ package com.joey.jseach.search.interfaces;
 import com.joey.jseach.core.Artist;
 import com.joey.jseach.core.Album;
 import com.joey.jseach.core.Song;
-import com.joey.jseach.search.AvailabilityWithData;
 import com.joey.jseach.search.JSearchException;
 import com.joey.jseach.search.SearchType;
 
 import java.util.List;
-import java.util.Set;
 
 public interface MusicQuerier {
 
@@ -17,7 +15,7 @@ public interface MusicQuerier {
 	 * @throws com.joey.jseach.search.JSearchException if something went wrong with the search
 	 *
 	 * */
-	List<AvailabilityWithData<Artist>> searchArtist(String artist) throws JSearchException;
+	List<Artist> searchArtist(String artist) throws JSearchException;
 
 
 	/**
@@ -25,7 +23,7 @@ public interface MusicQuerier {
 	 * @throws com.joey.jseach.search.JSearchException if something went wrong with the search
 	 *
 	 * */
-	List<AvailabilityWithData<Album>> searchAlbum(String album) throws JSearchException;
+	List<Album> searchAlbum(String album) throws JSearchException;
 
 
 	/**
@@ -33,7 +31,7 @@ public interface MusicQuerier {
 	 * @throws com.joey.jseach.search.JSearchException if something went wrong with the search
 	 *
 	 * */
-	List<AvailabilityWithData<Song>> searchSong(String song) throws JSearchException;
+	List<Song> searchSong(String song) throws JSearchException;
 
 
 	MusicQuerierSearchResult search(String query, List<SearchType> searchTypes) throws JSearchException;

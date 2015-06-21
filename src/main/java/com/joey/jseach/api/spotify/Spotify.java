@@ -10,11 +10,10 @@ import retrofit.RestAdapter;
 import com.joey.jseach.core.Album;
 import com.joey.jseach.core.Artist;
 import com.joey.jseach.core.Song;
-import com.joey.jseach.search.AvailabilityWithData;
 import com.joey.jseach.search.Converter;
 import com.joey.jseach.search.JSearchException;
 import com.joey.jseach.search.implementations.JSearchErrorHandler;
-import com.joey.jseach.search.interfaces.Availibility;
+import com.joey.jseach.search.interfaces.Availability;
 import com.joey.jseach.search.interfaces.MusicQuerier;
 
 import java.util.*;
@@ -24,9 +23,9 @@ public class Spotify implements MusicQuerier {
 
 	private static final String TAG = "Spotify";
 
-	private static final Converter<SpotifyResult.Artist, AvailabilityWithData<Artist>> ArtistConverter = new ArtistConverter();
-	private static final Converter<SpotifyResult.Album, AvailabilityWithData<Album>> AlbumConverter = new AlbumConverter();
-	private static final Converter<SpotifyResult.Track, AvailabilityWithData<Song>> SongConverter = new SongConverter();
+	private static final Converter<SpotifyArtist, Artist> ArtistConverter = new ArtistConverter();
+	private static final Converter<SpotifyAlbum, Album> AlbumConverter = new AlbumConverter();
+	private static final Converter<SpotifyResult.Track, Song> SongConverter = new SongConverter();
 
 	private static final List<SearchType> ARTIST_SET = Collections.singletonList(SearchType.Artist);
 	private static final List<SearchType> ALBUM_SET = Collections.singletonList(SearchType.Album);
@@ -45,7 +44,7 @@ public class Spotify implements MusicQuerier {
 /* - MusicQuerier INTERFACE */
 
 	@Override
-	public List<AvailabilityWithData<Artist>> searchArtist(String artist) throws JSearchException {
+	public List<Artist> searchArtist(String artist) throws JSearchException {
 		MusicQuerierSearchResult searchResult = search(artist, ARTIST_SET);
 		if (searchResult != null) {
 			return searchResult.getArtists();
@@ -54,7 +53,7 @@ public class Spotify implements MusicQuerier {
 	}
 
 	@Override
-	public List<AvailabilityWithData<Album>> searchAlbum(String album) throws JSearchException {
+	public List<Album> searchAlbum(String album) throws JSearchException {
 		MusicQuerierSearchResult searchResult = search(album, ALBUM_SET);
 		if (searchResult != null) {
 			return searchResult.getAlbums();
@@ -63,7 +62,7 @@ public class Spotify implements MusicQuerier {
 	}
 
 	@Override
-	public List<AvailabilityWithData<Song>> searchSong(String song) throws JSearchException {
+	public List<Song> searchSong(String song) throws JSearchException {
 		MusicQuerierSearchResult searchResult = search(song, SONG_SET);
 		if (searchResult != null) {
 			return searchResult.getSongs();
@@ -80,19 +79,17 @@ public class Spotify implements MusicQuerier {
 		SpotifyResult spotifyResult = spotifyAPI.search(query, types);
 
 		if (spotifyResult != null) {
-			List<AvailabilityWithData<Artist>> artists = null;
+			List<Artist> artists = null;
+			List<Album> albums = null;
+			List<Song> songs = null;
 
 			if (spotifyResult.artists != null) {
 				artists = convertAll(spotifyResult.artists.items, ArtistConverter);
 			}
 
-			List<AvailabilityWithData<Album>> albums = null;
-
 			if (spotifyResult.albums != null) {
 				albums = convertAll(spotifyResult.albums.items, AlbumConverter);
 			}
-
-			List<AvailabilityWithData<Song>> songs = null;
 
 			if (spotifyResult.tracks != null) {
 				songs = convertAll(spotifyResult.tracks.items, SongConverter);
@@ -106,11 +103,11 @@ public class Spotify implements MusicQuerier {
 
 /* - UTILITY FUNCTIONS */
 
-	private static <I, O> List<AvailabilityWithData<O>> convertAll(List<I> inputList, Converter<I, AvailabilityWithData<O>> converter) {
+	private static <I, O> List<O> convertAll(List<I> inputList, Converter<I, O> converter) {
 		if (inputList != null) {
-			List<AvailabilityWithData<O>> result = new ArrayList<>();
+			List<O> result = new ArrayList<>();
 			for (I input : inputList) {
-				AvailabilityWithData<O> output = converter.convert(input);
+				O output = converter.convert(input);
 				result.add(output);
 			}
 			return result;
@@ -153,12 +150,12 @@ public class Spotify implements MusicQuerier {
 
 /* - CONVERTERS */
 
-	private static List<Image>  extractImages(List<SpotifyResult.Image> images) {
+	private static List<Image>  extractImages(List<SpotifyImage> images) {
 		List<Image> result = null;
 
 		if (!JSU.isNullOrEmpty(images)) {
 			result = new ArrayList<>();
-			for (SpotifyResult.Image image: images) {
+			for (SpotifyImage image: images) {
 				result.add(new Image(image.width, image.height, image.url));
 			}
 		}
@@ -166,66 +163,72 @@ public class Spotify implements MusicQuerier {
 		return result;
 	}
 
-	private static class ArtistConverter implements Converter<SpotifyResult.Artist, AvailabilityWithData<Artist>> {
+	private static class ArtistConverter implements Converter<SpotifyArtist, Artist> {
 		@Override
-		public AvailabilityWithData<Artist> convert(SpotifyResult.Artist spotifyArtist) {
+		public Artist convert(SpotifyArtist spotifyArtist) {
 
 			// CREATE ARTIST
 			Artist artist = new Artist(spotifyArtist.name);
 
 			// GET AVAILABILITY
-			Availibility availibility = new SpotifyAvailability(spotifyArtist.externalUrls.spotify);
+			Availability availability = new SpotifyAvailability(spotifyArtist.externalUrls.spotify);
+			artist.addAvailability( availability );
 
 			// GET IMAGES
 			List<Image> images = extractImages(spotifyArtist.images);
-			if (!JSU.isNullOrEmpty(images)) {
+
+			if ( ! JSU.isNullOrEmpty(images) ) {
 				artist.addImages(images);
 			}
 
-			return new AvailabilityWithData<>(artist, availibility);
+			return artist;
 		}
 	};
 
-	private static class AlbumConverter implements Converter<SpotifyResult.Album, AvailabilityWithData<Album>> {
+	private static class AlbumConverter implements Converter<SpotifyAlbum, Album> {
 
 		@Override
-		public AvailabilityWithData<Album> convert(SpotifyResult.Album spotifyAlbum) {
+		public Album convert(SpotifyAlbum spotifyAlbum) {
 
 			// CREATE ALBUM
 			Album album = new Album(spotifyAlbum.name);
 
 			// GET AVAILABILITY
-			Availibility availibility = new SpotifyAvailability(spotifyAlbum.externalUrls.spotify);
+			Availability availability = new SpotifyAvailability(spotifyAlbum.externalUrls.spotify);
+			album.addAvailability( availability );
 
 			// GET IMAGES
 			List<Image> images = extractImages(spotifyAlbum.images);
-			if (!JSU.isNullOrEmpty(images)) {
+
+			if ( ! JSU.isNullOrEmpty(images) ) {
 				album.addImages(images);
 			}
 
-			return new AvailabilityWithData<>(album, availibility);
+			return album;
 		}
 	};
 
-	private static class SongConverter implements Converter<SpotifyResult.Track, AvailabilityWithData<Song>> {
+	private static class SongConverter implements Converter<SpotifyResult.Track, Song> {
 		@Override
-		public AvailabilityWithData<Song> convert(SpotifyResult.Track spotifySong) {
+		public Song convert(SpotifyResult.Track spotifySong) {
 
 			// CREATE SONG
 			Song song = new Song(spotifySong.name);
 
 			// GET AVAILABILITY
-			Availibility availibility = new SpotifyAvailability(spotifySong.externalUrls.spotify);
+			Availability availability = new SpotifyAvailability(spotifySong.externalUrls.spotify);
+			song.addAvailability( availability );
+
 
 			// GET ARTIST NAME
-			if (!JSU.isNullOrEmpty(spotifySong.artists)) {
-				SpotifyResult.Artist spotifyArtist = spotifySong.artists.get(0);
+			if ( ! JSU.isNullOrEmpty(spotifySong.artists) ) {
+				SpotifyArtist spotifyArtist = spotifySong.artists.get(0);
 				song.setArtist(spotifyArtist.name);
 			}
 
 			// GET ALBUM NAME
 			if (spotifySong.album != null) {
-				SpotifyResult.Album spotifyAlbum = spotifySong.album;
+				SpotifyAlbum spotifyAlbum = spotifySong.album;
 				song.setAlbum(spotifyAlbum.name);
 
 				// GET IMAGES FROM ALBUM
@@ -238,7 +241,7 @@ public class Spotify implements MusicQuerier {
 			// GET DURATION
 			song.setDurationMs(spotifySong.durationMs);
 
-			return new AvailabilityWithData<>(song, availibility);
+			return song;
 		}
 	};
 }

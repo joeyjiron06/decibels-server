@@ -30,6 +30,14 @@ public class Images implements JsonSerializable {
 		}
 	}
 
+	public void addImages(Images other) {
+		if ( other != null ) {
+			this.addImages( other.small );
+			this.addImages( other.medium );
+			this.addImages( other.large );
+		}
+	}
+
 	@Override
 	public JsonObject toJson() {
 		JsonObject json = new JsonObject();

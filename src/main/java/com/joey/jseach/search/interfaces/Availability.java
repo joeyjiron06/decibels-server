@@ -3,7 +3,7 @@ package com.joey.jseach.search.interfaces;
 import com.google.gson.JsonObject;
 import com.joey.jseach.network.JsonSerializable;
 
-public interface Availibility extends JsonSerializable {
+public interface Availability extends JsonSerializable {
 	String getName();
 	String getDeepLink();
 	String getIcon();

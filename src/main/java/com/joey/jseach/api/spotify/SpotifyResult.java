@@ -16,41 +16,17 @@ public class SpotifyResult {
 	public static class Artists {
 		public int total;
 		public int limit;
-		public List<Artist> items;
-	}
-
-	public static class Artist {
-		public String id;//spotify id
-		public String name;
-		public String uri;//spotify uri for artist
-		public String type;//should always be artist
-		public int popularity;//0-100
-		public String href;//A link to the Web API endpoint providing full details of the artist.
-		public List<String> genres;
-
-		@SerializedName("external_urls")
-		public ExternalUrls externalUrls;
-
-		public List<Image> images;
+		public List<SpotifyArtist> items;
 	}
 
 
 /* - ALBUMS */
 
 	public static class Albums {
-		public List<Album> items;
+		public List<SpotifyAlbum> items;
 	}
 
-	public static class Album {
-		public String id;
-		public String name;
-		public List<Image> images;
-
-		@SerializedName("external_urls")
-		public ExternalUrls externalUrls;
-	}
-
-/* - SONGS */
+	/* - SONGS */
 
 	public static class Tracks {
 		public ArrayList<Track> items;
@@ -68,23 +44,11 @@ public class SpotifyResult {
 		public ExternalUrls externalUrls;
 		public boolean isPlayable;
 		public int trackNumber;
-		public Album album;
-		public ArrayList<Artist> artists;
+		public SpotifyAlbum album;
+		public ArrayList<SpotifyArtist> artists;
 
 		@SerializedName("duration_ms")
 		public int durationMs;
-	}
-
-/* - OTHER */
-
-	public static class ExternalUrls {
-		public String spotify;
-	}
-
-	public static class Image {
-		public int height;
-		public int width;
-		public String url;
 	}
 }
 

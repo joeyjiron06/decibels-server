@@ -2,25 +2,39 @@ package com.joey.jseach.core;
 
 import com.google.gson.JsonObject;
 import com.joey.jseach.network.JsonSerializable;
+import com.joey.jseach.search.interfaces.Availability;
 import com.joey.jseach.utils.JSU;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Song implements JsonSerializable {
+
+	private final String id;
 	private final String name;
 	private final Images images;
+	private final List<Availability> availabilities;
 	private String album;
 	private String artist;
 	private int durationMs;
 
-    public Song(String name) {
-		this.name = name;
-		this.images = new Images();
+	public Song(String name) {
+		this.name 			= name;
+		this.id 			= name;
+		this.images 		= new Images();
+		this.availabilities = new ArrayList<>();
+	}
+
+	public String getId() {
+		return id;
 	}
 
 	public void addImages(List<Image> images) {
 		this.images.addImages(images);
+	}
+
+	public void addAvailability(Availability availability) {
+		availabilities.add( availability );
 	}
 
 	public void setArtist(String artist) {
@@ -33,6 +47,26 @@ public class Song implements JsonSerializable {
 
 	public void setDurationMs(int durationMs) {
 		this.durationMs = durationMs;
+	}
+
+	public void updateWith(Song other) {
+		if ( other != null ) {
+			this.images.addImages( other.images );
+
+			this.availabilities.addAll( other.availabilities );
+
+			if ( JSU.isNullOrEmpty( this.artist ) ) {
+				this.setArtist( other.artist );
+			}
+
+			if ( JSU.isNullOrEmpty( this.album ) ) {
+				this.setAlbum( other.album );
+			}
+
+			if ( this.durationMs == 0 ) {
+				this.setDurationMs( other.durationMs );
+			}
+		}
 	}
 
 	@Override
@@ -48,7 +82,7 @@ public class Song implements JsonSerializable {
 	@Override
 	public int hashCode() {
 		int hash = 17;
-		hash = hash * 31 + name.hashCode();
+		hash = hash * 31 + id.hashCode();
 		return hash;
 	}
 
@@ -60,7 +94,7 @@ public class Song implements JsonSerializable {
 
 		if (obj instanceof Song) {
 			Song other = (Song) obj;
-			return other.name.equals(name);
+			return other.id.equals(id);
 		}
 
 		return false;
@@ -74,6 +108,7 @@ public class Song implements JsonSerializable {
 		JSU.safeAdd(json, "album", album);
 		JSU.safeAdd(json, "artist", artist);
 		JSU.safeAdd(json, "images", images.toJson());
+		JSU.safeAdd(json, "availabilities", JSU.toJson(availabilities));
 		JSU.safeAddPositive(json, "durationMs", durationMs);
 		return json;
 	}

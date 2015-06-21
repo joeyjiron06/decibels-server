@@ -9,19 +9,19 @@ import java.util.List;
 public enum SearchType {
 	Artist("artist") {
 		@Override
-		public List<AvailabilityWithData<Artist>> apply(String query, MusicQuerier querier) throws JSearchException {
+		public List<Artist> apply(String query, MusicQuerier querier) throws JSearchException {
 			return querier.searchArtist(query);
 		}
 	},
 	Album("album") {
 		@Override
-		public List<AvailabilityWithData<Album>> apply(String query, MusicQuerier querier) throws JSearchException {
+		public List<Album> apply(String query, MusicQuerier querier) throws JSearchException {
 			return querier.searchAlbum(query);
 		}
 	},
 	Song("song") {
 		@Override
-		public List<AvailabilityWithData<Song>> apply(String query, MusicQuerier querier) throws JSearchException {
+		public List<Song> apply(String query, MusicQuerier querier) throws JSearchException {
 				return querier.searchSong(query);
 			}
 	};
@@ -33,7 +33,7 @@ public enum SearchType {
 	}
 
 
-	public abstract<T> List<AvailabilityWithData<T>> apply(String query, MusicQuerier querier) throws JSearchException;
+	public abstract<T> List<T> apply(String query, MusicQuerier querier) throws JSearchException;
 
 
 
