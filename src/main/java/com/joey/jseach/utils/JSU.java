@@ -31,23 +31,6 @@ public class JSU {
 		return string == null || string.length() == 0 || string.trim().length() == 0;
 	}
 
-	public static boolean safeEquals(String str1, String str2) {
-
-		if ( str1 == null && str2 == null) {
-			return true;
-		}
-
-		if ( str1 == null ) {
-			return false;
-		}
-
-		if ( str2 == null ) {
-			return false;
-		}
-
-		return str1.equals( str2 );
-	}
-
 	/**
 	 * @param input String of format string1, string2,... etc.
 	 * @return an array of strings
@@ -104,14 +87,6 @@ public class JSU {
 		return null;
 	}
 
-	public static <K, V> List<V> mapAsList(Map<K, V> map) {
-		if ( map != null ) {
-			return new ArrayList<>( map.values() );
-		}
-
-		return null;
-	}
-
 	public static <T> T findInCollection(Collection<T> collection, Predicate<T> predicate) {
 		for (T item : collection) {
 			if ( predicate.test(item) ) {
@@ -122,41 +97,6 @@ public class JSU {
 	}
 
 /* - A P P  S P E C I F I C  U T I L S */
-
-	private static String toString(RetrofitError error) {
-		StringBuilder builder = new StringBuilder("RetrofitError : ");
-
-		if (error != null) {
-			Response response = error.getResponse();
-			if (response != null) {
-				builder.append(" url(")
-						.append(response.getUrl())
-						.append(")");
-
-				builder.append(" httpStatus(")
-						.append(response.getStatus())
-						.append(")");
-
-				builder.append(" reason(")
-						.append(response.getReason())
-						.append(")");
-
-				TypedInput input = response.getBody();
-				if (input != null) {
-					builder.append(" body(");
-					if (input instanceof TypedByteArray) {
-						TypedByteArray typedByteArray = (TypedByteArray) input;
-						builder.append(new String(typedByteArray.getBytes()));
-					} else {
-						builder.append(input.toString());
-					}
-					builder.append(")");
-				}
-			}
-		}
-
-		return builder.toString();
-	}
 
 	public static void safeAdd(JsonObject json, String key, String value) {
 		if (!JSU.isNullOrEmpty(value)) {
@@ -174,16 +114,5 @@ public class JSU {
 		if (value > 0) {
 			json.addProperty(key, value);
 		}
-	}
-
-	public static String safeGetString(JsonObject json, String key) {
-		if (json != null) {
-			try {
-				return json.get(key).getAsString();
-			} catch (Exception e) {
-			}
-		}
-
-		return null;
 	}
 }
