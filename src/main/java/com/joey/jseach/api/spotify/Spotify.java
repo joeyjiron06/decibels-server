@@ -76,27 +76,34 @@ public class Spotify implements MusicQuerier {
 		String types = convertToSpotifyType(searchTypes);
 
 		// QUERY SPOTIFY API
-		SpotifyResult spotifyResult = spotifyAPI.search(query, types);
+		try {
+			SpotifyResult spotifyResult = spotifyAPI.search(query, types);
 
-		if (spotifyResult != null) {
-			List<Artist> artists = null;
-			List<Album> albums = null;
-			List<Song> songs = null;
+			if (spotifyResult != null) {
+				List<Artist> artists = null;
+				List<Album> albums = null;
+				List<Song> songs = null;
 
-			if (spotifyResult.artists != null) {
-				artists = convertAll(spotifyResult.artists.items, ArtistConverter);
+				if (spotifyResult.artists != null) {
+					artists = convertAll(spotifyResult.artists.items, ArtistConverter);
+				}
+
+				if (spotifyResult.albums != null) {
+					albums = convertAll(spotifyResult.albums.items, AlbumConverter);
+				}
+
+				if (spotifyResult.tracks != null) {
+					songs = convertAll(spotifyResult.tracks.items, SongConverter);
+				}
+
+				return new MusicQuerierSearchResult(artists, albums, songs);
 			}
 
-			if (spotifyResult.albums != null) {
-				albums = convertAll(spotifyResult.albums.items, AlbumConverter);
-			}
-
-			if (spotifyResult.tracks != null) {
-				songs = convertAll(spotifyResult.tracks.items, SongConverter);
-			}
-
-			return new MusicQuerierSearchResult(artists, albums, songs);
+		} catch (JSearchException e) {
+			log("jsearch exception %s", e);
+			throw e;
 		}
+
 
 		return null;
 	}
