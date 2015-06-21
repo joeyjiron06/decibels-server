@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * JSearch UTILITIES
@@ -108,6 +109,15 @@ public class JSU {
 			return new ArrayList<>( map.values() );
 		}
 
+		return null;
+	}
+
+	public static <T> T findInCollection(Collection<T> collection, Predicate<T> predicate) {
+		for (T item : collection) {
+			if ( predicate.test(item) ) {
+				return item;
+			}
+		}
 		return null;
 	}
 

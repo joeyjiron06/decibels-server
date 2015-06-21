@@ -63,9 +63,9 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 
 	@Override
 	public MusicSearchEngineResult search(String query, List<SearchType> searchTypes) throws JSearchException {
-		Map<String, Artist> artistsMap	= new HashMap<>();
-		Map<String, Album> 	albumsMap	= new HashMap<>();
-		Map<String, Song> 	songsMap	= new HashMap<>();
+		List<Artist> artists			= new ArrayList<>();
+		List<Album> albums				= new ArrayList<>();
+		List<Song> songs				= new ArrayList<>();
 
 		CountDownLatch countDownLatch = new CountDownLatch(musicQueriers.size());
 
@@ -77,20 +77,17 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 					MusicQuerierSearchResult searchResult = musicQuerier.search(query, searchTypes);
 
 					if (searchResult != null) {
-						List<Artist> artists = searchResult.getArtists();
-						List<Album> albums = searchResult.getAlbums();
-						List<Song> songs = searchResult.getSongs();
 
-						synchronized (artistsMap) {
-							updateMapWithArtists(artistsMap, artists);
+						synchronized (artists) {
+							addAllArtists(searchResult.getArtists(), artists);
 						}
 
-						synchronized (albumsMap) {
-							updateMapWithAlbums(albumsMap, albums);
+						synchronized (albums) {
+							addAllAlbums(searchResult.getAlbums(), albums);
 						}
 
-						synchronized (songsMap) {
-							updateMapWithSongs(songsMap, songs);
+						synchronized (songs) {
+							addAllSongs(searchResult.getSongs(), songs);
 						}
 					}
 
@@ -108,58 +105,58 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 			throw new JSearchException(JSearchException.Reason.Unexpected, "no successful search results");
 		}
 
-		List<Artist> artistsList	= JSU.mapAsList(artistsMap);
-		List<Album> albumsList		= JSU.mapAsList(albumsMap);
-		List<Song> songsList		= JSU.mapAsList(songsMap);
-
-		return new MusicSearchEngineResult(artistsList, albumsList, songsList);
+		return new MusicSearchEngineResult(artists, albums, songs);
 	}
 
 /* - UTILITY FUNCTIONS */
 
-	private static void updateMapWithArtists(Map<String, Artist> artistsMap, List<Artist> artists) {
-		if (artists != null) {
-			for (Artist artist : artists) {
-				String artistId			= artist.getId();
-				Artist artistInMap		= artistsMap.get(artist.getId());
+	private static void addAllArtists(List<Artist> source, List<Artist> destination) {
+		if ( source == null || destination == null) {
+			return;
+		}
 
-				if ( artistInMap != null ) {
-					//add the availabilities from the artist to the artist in the map
-					artistInMap.updateWith(artist);
-				} else {
-					//artist isn't in the map so add it
-					artistsMap.put(artistId, artist);
-				}
+
+		for (Artist currentArtist : source) {
+			Artist artistInDestination		= JSU.findInCollection(destination, artist -> artist.getId().equals(currentArtist.getId()));
+
+			if ( artistInDestination != null ) {
+				artistInDestination.updateWith(currentArtist);
+			} else {
+				destination.add(currentArtist );
 			}
 		}
 	}
 
-	private static void updateMapWithAlbums(Map<String, Album> albumsMap, List<Album> albums) {
-		if (albums != null) {
-			for (Album album : albums) {
-				String albumId			= album.getId();
-				Album albumInMap		= albumsMap.get(albumId);
+	private static void addAllAlbums(List<Album> source, List<Album> destination) {
+		if ( source == null || destination == null) {
+			return;
+		}
 
-				if ( albumInMap != null ) {
-					albumInMap.updateWith(album);
-				} else {
-					albumsMap.put(albumId, album);
-				}
+
+		for (Album currentAlbum : source) {
+			Album albumInDestination		= JSU.findInCollection(destination, album -> album.getId().equals(currentAlbum.getId()));
+
+			if ( albumInDestination != null ) {
+				albumInDestination.updateWith( currentAlbum );
+			} else {
+				destination.add( currentAlbum );
 			}
 		}
 	}
 
-	private static void updateMapWithSongs(Map<String, Song> songsMap, List<Song> songs) {
-		if (songs != null) {
-			for (Song song : songs) {
-				String songId		= song.getId();
-				Song songInMap		= songsMap.get(songId);
+	private static void addAllSongs(List<Song> source, List<Song> destination) {
+		if ( source == null || destination == null) {
+			return;
+		}
 
-				if ( songInMap != null ) {
-					songInMap.updateWith(song);
-				} else {
-					songsMap.put(songId, song);
-				}
+
+		for (Song currentSong : source) {
+			Song songInDestination		= JSU.findInCollection(destination, song -> song.getId().equals(currentSong.getId()));
+
+			if ( songInDestination != null ) {
+				songInDestination.updateWith(currentSong);
+			} else {
+				destination.add( currentSong );
 			}
 		}
 	}
