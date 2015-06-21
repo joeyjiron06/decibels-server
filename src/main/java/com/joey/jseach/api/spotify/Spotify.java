@@ -25,7 +25,7 @@ public class Spotify implements MusicQuerier {
 
 	private static final Converter<SpotifyArtist, Artist> ArtistConverter = new ArtistConverter();
 	private static final Converter<SpotifyAlbum, Album> AlbumConverter = new AlbumConverter();
-	private static final Converter<SpotifyResult.Track, Song> SongConverter = new SongConverter();
+	private static final Converter<SpotifyTrack, Song> SongConverter = new SongConverter();
 
 	private static final List<SearchType> ARTIST_SET = Collections.singletonList(SearchType.Artist);
 	private static final List<SearchType> ALBUM_SET = Collections.singletonList(SearchType.Album);
@@ -215,9 +215,9 @@ public class Spotify implements MusicQuerier {
 		}
 	};
 
-	private static class SongConverter implements Converter<SpotifyResult.Track, Song> {
+	private static class SongConverter implements Converter<SpotifyTrack, Song> {
 		@Override
-		public Song convert(SpotifyResult.Track track) {
+		public Song convert(SpotifyTrack track) {
 
 			String songName				= getSongName(track);
 			String albumName			= getAlbumName(track);
@@ -237,36 +237,36 @@ public class Spotify implements MusicQuerier {
 			return song;
 		}
 
-		private List<Image> getImages(SpotifyResult.Track track) {
+		private List<Image> getImages(SpotifyTrack track) {
 			if ( track.album != null ) {
 				return extractImages( track.album.images );
 			}
 			return null;
 		}
 
-		private String getArtistName(SpotifyResult.Track track) {
+		private String getArtistName(SpotifyTrack track) {
 			if ( ! JSU.isNullOrEmpty( track.artists ) ) {
 				return track.artists.get(0).name;
 			}
 			return null;
 		}
 
-		private String getAlbumName(SpotifyResult.Track track) {
+		private String getAlbumName(SpotifyTrack track) {
 			if ( track.album != null ) {
 				return track.album.name;
 			}
 			return null;
 		}
 
-		private String getSongName(SpotifyResult.Track track ) {
+		private String getSongName(SpotifyTrack track ) {
 			return track.name;
 		}
 
-		private int getDuration(SpotifyResult.Track track) {
+		private int getDuration(SpotifyTrack track) {
 			return track.durationMs;
 		}
 
-		private Availability getAvailability(SpotifyResult.Track track) {
+		private Availability getAvailability(SpotifyTrack track) {
 			return new SpotifyAvailability(track.externalUrls.spotify);
 		}
 	};
