@@ -30,6 +30,23 @@ public class JSU {
 		return string == null || string.length() == 0 || string.trim().length() == 0;
 	}
 
+	public static boolean safeEquals(String str1, String str2) {
+
+		if ( str1 == null && str2 == null) {
+			return true;
+		}
+
+		if ( str1 == null ) {
+			return false;
+		}
+
+		if ( str2 == null ) {
+			return false;
+		}
+
+		return str1.equals( str2 );
+	}
+
 	/**
 	 * @param input String of format string1, string2,... etc.
 	 * @return an array of strings
@@ -147,5 +164,16 @@ public class JSU {
 		if (value > 0) {
 			json.addProperty(key, value);
 		}
+	}
+
+	public static String safeGetString(JsonObject json, String key) {
+		if (json != null) {
+			try {
+				return json.get(key).getAsString();
+			} catch (Exception e) {
+			}
+		}
+
+		return null;
 	}
 }

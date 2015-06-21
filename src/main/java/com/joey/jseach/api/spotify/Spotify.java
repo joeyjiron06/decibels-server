@@ -210,38 +210,57 @@ public class Spotify implements MusicQuerier {
 
 	private static class SongConverter implements Converter<SpotifyResult.Track, Song> {
 		@Override
-		public Song convert(SpotifyResult.Track spotifySong) {
+		public Song convert(SpotifyResult.Track track) {
+
+			String songName				= getSongName(track);
+			String albumName			= getAlbumName(track);
+			String artistName			= getArtistName(track);
+			List<Image> images			= getImages(track);
+			int durataionMillis			= getDuration(track);
+			Availability availability	= getAvailability( track );
 
 			// CREATE SONG
-			Song song = new Song(spotifySong.name);
-
-			// GET AVAILABILITY
-			Availability availability = new SpotifyAvailability(spotifySong.externalUrls.spotify);
-			song.addAvailability( availability );
-
-
-			// GET ARTIST NAME
-			if ( ! JSU.isNullOrEmpty(spotifySong.artists) ) {
-				SpotifyArtist spotifyArtist = spotifySong.artists.get(0);
-				song.setArtist(spotifyArtist.name);
+			Song song = new Song(songName, albumName, artistName);
+			song.setDurationMs( durataionMillis );
+			song.addAvailability(availability);
+			if ( ! JSU.isNullOrEmpty( images ) ) {
+				song.addImages( images );
 			}
-
-			// GET ALBUM NAME
-			if (spotifySong.album != null) {
-				SpotifyAlbum spotifyAlbum = spotifySong.album;
-				song.setAlbum(spotifyAlbum.name);
-
-				// GET IMAGES FROM ALBUM
-				List<Image> images = extractImages(spotifyAlbum.images);
-				if (!JSU.isNullOrEmpty(images)) {
-					song.addImages(images);
-				}
-			}
-
-			// GET DURATION
-			song.setDurationMs(spotifySong.durationMs);
 
 			return song;
+		}
+
+		private List<Image> getImages(SpotifyResult.Track track) {
+			if ( track.album != null ) {
+				return extractImages( track.album.images );
+			}
+			return null;
+		}
+
+		private String getArtistName(SpotifyResult.Track track) {
+			if ( ! JSU.isNullOrEmpty( track.artists ) ) {
+				return track.artists.get(0).name;
+			}
+			return null;
+		}
+
+		private String getAlbumName(SpotifyResult.Track track) {
+			if ( track.album != null ) {
+				return track.album.name;
+			}
+			return null;
+		}
+
+		private String getSongName(SpotifyResult.Track track ) {
+			return track.name;
+		}
+
+		private int getDuration(SpotifyResult.Track track) {
+			return track.durationMs;
+		}
+
+		private Availability getAvailability(SpotifyResult.Track track) {
+			return new SpotifyAvailability(track.externalUrls.spotify);
 		}
 	};
 }
