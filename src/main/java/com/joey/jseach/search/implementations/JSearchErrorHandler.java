@@ -21,6 +21,6 @@ public class JSearchErrorHandler implements ErrorHandler {
 				return new JSearchException(JSearchException.Reason.Unexpected, error);
 		}
 
-		return new IllegalStateException("retrofit error should be handled");
+		throw new IllegalStateException("retrofit error should be handled");
 	}
 }

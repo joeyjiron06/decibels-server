@@ -4,11 +4,10 @@ import com.joey.jseach.api.spotify.Spotify;
 import com.joey.jseach.core.Album;
 import com.joey.jseach.core.Artist;
 import com.joey.jseach.core.Song;
-import com.joey.jseach.search.AvailabilityWithData;
 import com.joey.jseach.search.JSearchException;
-import com.joey.jseach.search.AvailabilitiesList;
 import com.joey.jseach.search.SearchType;
 import com.joey.jseach.search.interfaces.*;
+import com.joey.jseach.utils.JSU;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -30,7 +29,7 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 /* - MusicSearchEngine INTERFACE */
 
 	@Override
-	public List<AvailabilitiesList<Artist>> searchArtist(String artist) throws JSearchException {
+	public List<Artist> searchArtist(String artist) throws JSearchException {
 		MusicSearchEngineResult result =  search(artist, SEARCH_TYPE_ARTIST);
 
 		if (result != null) {
@@ -41,7 +40,7 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 	}
 
 	@Override
-	public List<AvailabilitiesList<Album>> searchAlbum(String album) throws JSearchException {
+	public List<Album> searchAlbum(String album) throws JSearchException {
 		MusicSearchEngineResult result =  search(album, SEARCH_TYPE_ALBUM);
 
 		if (result != null) {
@@ -52,7 +51,7 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 	}
 
 	@Override
-	public List<AvailabilitiesList<Song>> searchSong(String song) throws JSearchException {
+	public List<Song> searchSong(String song) throws JSearchException {
 		MusicSearchEngineResult result =  search(song, SEARCH_TYPE_SONG);
 
 		if (result != null) {
@@ -64,9 +63,9 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 
 	@Override
 	public MusicSearchEngineResult search(String query, List<SearchType> searchTypes) throws JSearchException {
-		Map<Artist, List<Availibility>> artistsMap = new HashMap<>();
-		Map<Album, List<Availibility>> albumsMap = new HashMap<>();
-		Map<Song, List<Availibility>> songsMap = new HashMap<>();
+		List<Artist> artists			= new ArrayList<>();
+		List<Album> albums				= new ArrayList<>();
+		List<Song> songs				= new ArrayList<>();
 
 		CountDownLatch countDownLatch = new CountDownLatch(musicQueriers.size());
 
@@ -78,20 +77,17 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 					MusicQuerierSearchResult searchResult = musicQuerier.search(query, searchTypes);
 
 					if (searchResult != null) {
-						List<AvailabilityWithData<Artist>> artists = searchResult.getArtists();
-						List<AvailabilityWithData<Album>> albums = searchResult.getAlbums();
-						List<AvailabilityWithData<Song>> songs = searchResult.getSongs();
 
-						synchronized (artistsMap) {
-							populateMap(artistsMap, artists);
+						synchronized (artists) {
+							addAllArtists(searchResult.getArtists(), artists);
 						}
 
-						synchronized (albumsMap) {
-							populateMap(albumsMap, albums);
+						synchronized (albums) {
+							addAllAlbums(searchResult.getAlbums(), albums);
 						}
 
-						synchronized (songsMap) {
-							populateMap(songsMap, songs);
+						synchronized (songs) {
+							addAllSongs(searchResult.getSongs(), songs);
 						}
 					}
 
@@ -109,58 +105,59 @@ public class JMusicSearchEngine implements MusicSearchEngine {
 			throw new JSearchException(JSearchException.Reason.Unexpected, "no successful search results");
 		}
 
-		List<AvailabilitiesList<Artist>> artistsList = convertMap(artistsMap);
-		List<AvailabilitiesList<Album>> albumsList = convertMap(albumsMap);
-		List<AvailabilitiesList<Song>> songsList = convertMap(songsMap);
-
-		return new MusicSearchEngineResult(artistsList, albumsList, songsList);
+		return new MusicSearchEngineResult(artists, albums, songs);
 	}
 
 /* - UTILITY FUNCTIONS */
 
-	private static <T> void populateMap(Map<T, List<Availibility>> dataMap, List<AvailabilityWithData<T>> dataList) {
-		if (dataList != null) {
-			for (AvailabilityWithData<T> availabilityWithData : dataList) {
-				T data = availabilityWithData.getData();
-				Availibility availibility = availabilityWithData.getAvailibility();
-				//look for artist in map
-				List<Availibility> availibilities = dataMap.get(data);
-				if (availibilities == null) {
-					availibilities = new ArrayList<>();
-					dataMap.put(data, availibilities);
-				}
+	private static void addAllArtists(List<Artist> source, List<Artist> destination) {
+		if ( source == null || destination == null) {
+			return;
+		}
 
-				//if availibility isnt in the list then add it
-				//TODO is this necessary?
-				if (!contains(availibilities, availibility)) {
-					availibilities.add(availibility);
-				}
 
+		for (Artist currentArtist : source) {
+			Artist artistInDestination		= JSU.findInCollection(destination, artist -> artist.getId().equals(currentArtist.getId()));
+
+			if ( artistInDestination != null ) {
+				artistInDestination.updateWith(currentArtist);
+			} else {
+				destination.add(currentArtist );
 			}
 		}
 	}
 
-	private static <T> List<AvailabilitiesList<T>> convertMap(Map<T, List<Availibility>> dataMap) {
-		List<AvailabilitiesList<T>> results = new ArrayList<>();
-
-		for (T data : dataMap.keySet()) {
-			List<Availibility> availibilities = dataMap.get(data);
-			results.add(new AvailabilitiesList<>(data, availibilities));
+	private static void addAllAlbums(List<Album> source, List<Album> destination) {
+		if ( source == null || destination == null) {
+			return;
 		}
 
-		return results;
-	}
 
-	private static boolean contains(List<Availibility> availibilities, Availibility availibility) {
-		String name = availibility.getName();
-		if (name != null) {
-			for (Availibility a : availibilities) {
-				if (name.equals(a.getName())) {
-					return true;
-				}
+		for (Album currentAlbum : source) {
+			Album albumInDestination		= JSU.findInCollection(destination, album -> album.getId().equals(currentAlbum.getId()));
+
+			if ( albumInDestination != null ) {
+				albumInDestination.updateWith( currentAlbum );
+			} else {
+				destination.add( currentAlbum );
 			}
 		}
+	}
 
-		return false;
+	private static void addAllSongs(List<Song> source, List<Song> destination) {
+		if ( source == null || destination == null) {
+			return;
+		}
+
+
+		for (Song currentSong : source) {
+			Song songInDestination		= JSU.findInCollection(destination, song -> song.getId().equals(currentSong.getId()));
+
+			if ( songInDestination != null ) {
+				songInDestination.updateWith(currentSong);
+			} else {
+				destination.add( currentSong );
+			}
+		}
 	}
 }

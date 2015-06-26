@@ -1,8 +1,8 @@
 package com.joey.jseach.api.spotify;
 
-import com.joey.jseach.search.interfaces.Availibility;
+import com.joey.jseach.search.interfaces.Availability;
 
-class SpotifyAvailability implements Availibility {
+class SpotifyAvailability implements Availability {
 	private final String deepLink;
 	SpotifyAvailability(String deepLink) {
 		this.deepLink = deepLink;

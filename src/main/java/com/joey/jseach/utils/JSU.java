@@ -10,7 +10,11 @@ import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
 import retrofit.mime.TypedInput;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * JSearch UTILITIES
@@ -83,42 +87,16 @@ public class JSU {
 		return null;
 	}
 
-/* - A P P  S P E C I F I C  U T I L S */
-
-	private static String toString(RetrofitError error) {
-		StringBuilder builder = new StringBuilder("RetrofitError : ");
-
-		if (error != null) {
-			Response response = error.getResponse();
-			if (response != null) {
-				builder.append(" url(")
-						.append(response.getUrl())
-						.append(")");
-
-				builder.append(" httpStatus(")
-						.append(response.getStatus())
-						.append(")");
-
-				builder.append(" reason(")
-						.append(response.getReason())
-						.append(")");
-
-				TypedInput input = response.getBody();
-				if (input != null) {
-					builder.append(" body(");
-					if (input instanceof TypedByteArray) {
-						TypedByteArray typedByteArray = (TypedByteArray) input;
-						builder.append(new String(typedByteArray.getBytes()));
-					} else {
-						builder.append(input.toString());
-					}
-					builder.append(")");
-				}
+	public static <T> T findInCollection(Collection<T> collection, Predicate<T> predicate) {
+		for (T item : collection) {
+			if ( predicate.test(item) ) {
+				return item;
 			}
 		}
-
-		return builder.toString();
+		return null;
 	}
+
+/* - A P P  S P E C I F I C  U T I L S */
 
 	public static void safeAdd(JsonObject json, String key, String value) {
 		if (!JSU.isNullOrEmpty(value)) {

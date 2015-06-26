@@ -1,6 +1,6 @@
 package test;
 
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.joey.jseach.App;
 import com.joey.jseach.search.implementations.JSearchErrorHandler;
 import com.joey.jseach.search.interfaces.MusicSearchEngine;
@@ -11,8 +11,6 @@ import com.joey.jseach.api.spotify.Spotify;
 import com.joey.jseach.core.Album;
 import com.joey.jseach.core.Artist;
 import com.joey.jseach.core.Song;
-import com.joey.jseach.search.AvailabilitiesList;
-import com.joey.jseach.search.AvailabilityWithData;
 import com.joey.jseach.search.JSearchException;
 
 import org.junit.Test;
@@ -43,7 +41,7 @@ public class SearchTests {
 
 	@Test
 	public void searchArtists() {
-		List<AvailabilitiesList<Artist>> artistResults = null;
+		List<Artist> artistResults = null;
 		try {
 			artistResults = SearchEngine.searchArtist("allman brothers");
 
@@ -56,7 +54,7 @@ public class SearchTests {
 
 	@Test
 	public void searchSong() {
-		List<AvailabilitiesList<Song>> songResults = null;
+		List<Song> songResults = null;
 		try {
 			songResults = SearchEngine.searchSong("call me");
 		} catch (JSearchException e) {
@@ -68,7 +66,7 @@ public class SearchTests {
 
 	@Test
 	public void searchAlbum() {
-		List<AvailabilitiesList<Album>> albums = null;
+		List<Album> albums = null;
 
 		try {
 			albums = SearchEngine.searchAlbum("mob rules");
@@ -81,19 +79,24 @@ public class SearchTests {
 
 	@Test
 	public void searchAll() {
-		MusicSearchEngineResult searchEngineResult = SearchEngine.search("bl", MusicSearchEngine.SEARCH_TYPES_ALL);
+		try {
+			MusicSearchEngineResult searchEngineResult = SearchEngine.search("bl", MusicSearchEngine.SEARCH_TYPES_ALL);
 
-		assert(searchEngineResult != null);
+			assert(searchEngineResult != null);
 
-		if (searchEngineResult != null) {
-			List<AvailabilitiesList<Artist>> artists = searchEngineResult.getArtists();
-			List<AvailabilitiesList<Album>> albums = searchEngineResult.getAlbums();
-			List<AvailabilitiesList<Song>> songs = searchEngineResult.getSongs();
+			if (searchEngineResult != null) {
+				List<Artist> artists = searchEngineResult.getArtists();
+				List<Album> albums = searchEngineResult.getAlbums();
+				List<Song> songs = searchEngineResult.getSongs();
 
-			assert(!JSU.isNullOrEmpty(artists));
-			assert(!JSU.isNullOrEmpty(albums));
-			assert(!JSU.isNullOrEmpty(songs));
+				assert(!JSU.isNullOrEmpty(artists));
+				assert(!JSU.isNullOrEmpty(albums));
+				assert(!JSU.isNullOrEmpty(songs));
+			}
+		} catch (JSearchException e) {
+			assertTrue(false);
 		}
+
 	}
 
 	@Test
@@ -101,7 +104,7 @@ public class SearchTests {
 		Spotify spotify = new Spotify();
 
 		try {
-			List<AvailabilityWithData<Album>> results = spotify.searchAlbum("mob rules");
+			List<Album> results = spotify.searchAlbum("mob rules");
 
 			assert(!JSU.isNullOrEmpty(results));
 		} catch (JSearchException e) {
@@ -116,22 +119,47 @@ public class SearchTests {
 	* gradle run
 	*
 	* */
-	//	@Test
-	public void testBadTypes() {
-		//all types passed in are bad
+//	@Test
+	public void testAPICalls() {
+
 		try {
-			JsonElement jsonElement = jsearchAPI.search("bl", JSU.combine(Arrays.asList("bologna", "garbage", "whatIsTHIS?"), ","));
+			//all types passed in are bad
+			String query 		= "bl";
+			String searchTypes 	= JSU.combine(Arrays.asList("bologna", "garbage", "whatIsTHIS?"), ",");
+
+			JsonObject json = jsearchAPI.search(query, searchTypes);
 			//we shouldnt get a response from the api. we should get an exception because its a bogus request
-			assertTrue(jsonElement == null);
+			assertTrue(json == null);
 		} catch (JSearchException e) {
 			RetrofitError retrofitError = (RetrofitError) e.getData();
 			assertTrue(retrofitError.getResponse().getStatus() == 400);
 		}
+
+
+		try {
+			//test search for all types
+			String query 		= "bl";
+			String searchTypes 	= JSU.combine(Arrays.asList("artist", "album", "song"), ",");
+
+			JsonObject json = jsearchAPI.search(query, searchTypes);
+
+			assertTrue(json != null);
+			assertTrue( json.getAsJsonArray("artists") != null );
+			assertTrue( json.getAsJsonArray("albums") != null );
+			assertTrue( json.getAsJsonArray("songs") != null );
+
+			log("json from api is %s", json.toString());
+
+		} catch (JSearchException e) {
+			log("search failed %s", e.toString());
+			assertTrue(false);
+		}
 	}
+
 
 	public interface JSearchAPI {
 		@GET("/search")
-		JsonElement search(
+		JsonObject search(
 				@Query(value =  "query", encodeName = true) String query,
 				@Query(value = "type", encodeName = false) String type
 		) throws JSearchException;
